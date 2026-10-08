@@ -114,8 +114,9 @@
 
           <!-- Menú desplegable de opciones de fuentes -->
           <div id="options-panel" class="options-panel" style="display: none;">
-            <span class="options-title">Fuentes visibles en la carrera:</span>
-            <div class="options-checkboxes">
+            <!-- Opción unificada: Renovables vs Fósiles -->
+            <div class="options-section">
+              <span class="options-title">Visualización Macro:</span>
               <label class="custom-checkbox-macro">
                 <input type="checkbox" id="check-macro-unified" checked>
                 <span class="macro-box"></span>
@@ -126,10 +127,76 @@
                 </span>
               </label>
             </div>
-            <div class="options-metric">
+
+            <!-- Energías por sí solas con colores únicos del curso -->
+            <div class="options-section">
+              <span class="options-title">Desglose de Fuentes Específicas:</span>
+              <div class="individual-sources-grid">
+                <!-- Renovables individuales -->
+                <label class="source-item">
+                  <input type="checkbox" class="source-checkbox" data-source="Solar">
+                  <span class="source-dot" style="background-color: #f59e0b;"></span>
+                  <span class="source-name">Solar</span>
+                  <span class="source-group-tag tag-sub-ren">Ren.</span>
+                </label>
+
+                <label class="source-item">
+                  <input type="checkbox" class="source-checkbox" data-source="Wind">
+                  <span class="source-dot" style="background-color: #06b6d4;"></span>
+                  <span class="source-name">Eólica</span>
+                  <span class="source-group-tag tag-sub-ren">Ren.</span>
+                </label>
+
+                <label class="source-item">
+                  <input type="checkbox" class="source-checkbox" data-source="Hydro">
+                  <span class="source-dot" style="background-color: #3b82f6;"></span>
+                  <span class="source-name">Hidroeléctrica</span>
+                  <span class="source-group-tag tag-sub-ren">Ren.</span>
+                </label>
+
+                <label class="source-item">
+                  <input type="checkbox" class="source-checkbox" data-source="Bioenergy">
+                  <span class="source-dot" style="background-color: #84cc16;"></span>
+                  <span class="source-name">Bioenergía</span>
+                  <span class="source-group-tag tag-sub-ren">Ren.</span>
+                </label>
+
+                <label class="source-item">
+                  <input type="checkbox" class="source-checkbox" data-source="Other renewables">
+                  <span class="source-dot" style="background-color: #10b981;"></span>
+                  <span class="source-name">Otras Renovables</span>
+                  <span class="source-group-tag tag-sub-ren">Ren.</span>
+                </label>
+
+                <!-- Fósiles individuales -->
+                <label class="source-item">
+                  <input type="checkbox" class="source-checkbox" data-source="Coal">
+                  <span class="source-dot" style="background-color: #64748b;"></span>
+                  <span class="source-name">Carbón</span>
+                  <span class="source-group-tag tag-sub-fos">Fósil</span>
+                </label>
+
+                <label class="source-item">
+                  <input type="checkbox" class="source-checkbox" data-source="Gas">
+                  <span class="source-dot" style="background-color: #f97316;"></span>
+                  <span class="source-name">Gas Natural</span>
+                  <span class="source-group-tag tag-sub-fos">Fósil</span>
+                </label>
+
+                <label class="source-item">
+                  <input type="checkbox" class="source-checkbox" data-source="Other fossil">
+                  <span class="source-dot" style="background-color: #e11d48;"></span>
+                  <span class="source-name">Otros Fósiles</span>
+                  <span class="source-group-tag tag-sub-fos">Fósil</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Métrica del eje temporal -->
+            <div class="options-section">
               <span class="options-title">Métrica del eje temporal:</span>
               <div class="metric-radios">
-                <label><input type="radio" name="metric-type" value="gen" checked> Generación Anual (TWh)</label>
+                <label><input type="radio" name="metric-type" value="gen" checked> Generación (TWh)</label>
                 <label><input type="radio" name="metric-type" value="share"> Participación (%)</label>
               </div>
             </div>
