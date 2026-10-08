@@ -392,10 +392,10 @@ function startChartRace() {
   chartPlaybackBar.style.display = 'flex';
   optionsPanel.style.display = 'none';
 
-  // Configuración de dimensiones
-  const width = chartContainer.clientWidth || 440;
-  const height = 220;
-  const margin = { top: 20, right: 30, bottom: 35, left: 45 };
+  // Configuración de dimensiones ampliadas
+  const width = chartContainer.clientWidth || 550;
+  const height = 290;
+  const margin = { top: 20, right: 30, bottom: 35, left: 50 };
 
   chartContainer.innerHTML = '';
 

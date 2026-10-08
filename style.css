@@ -43,18 +43,18 @@ body {
   overflow: hidden;
 }
 
-/* Layout general en dos columnas */
+/* Layout general en dos columnas (Mapa compacto 38% y Panel espacioso 62%) */
 .app-layout {
   display: grid;
-  grid-template-columns: 1fr 500px;
+  grid-template-columns: 38% 62%;
   height: 100vh;
   width: 100vw;
 }
 
-@media (max-width: 950px) {
+@media (max-width: 1024px) {
   .app-layout {
     grid-template-columns: 1fr;
-    grid-template-rows: 55vh 1fr;
+    grid-template-rows: 45vh 1fr;
     overflow-y: auto;
   }
 }
@@ -698,10 +698,10 @@ body {
   color: var(--text-muted);
 }
 
-/* Contenedor SVG del gráfico */
+/* Contenedor SVG del gráfico ampliado */
 .chart-container {
   width: 100%;
-  height: 220px;
+  height: 300px;
   position: relative;
 }
 
