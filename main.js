@@ -87,6 +87,7 @@ let showRenew = true;
 // Elementos del DOM
 const viewIntro = document.getElementById('view-intro');
 const viewCountrySelected = document.getElementById('view-country-selected');
+const headerCountryBadge = document.getElementById('header-country-badge');
 const selectedCountryNameEl = document.getElementById('selected-country-name');
 const btnSelectOptions = document.getElementById('btn-select-options');
 const optionsPanel = document.getElementById('options-panel');
@@ -330,6 +331,9 @@ function selectCountry(countryName, element) {
   chartPlaybackBar.style.display = 'none';
   chartYearBadge.textContent = 'Año 2000';
 
+  // Mostrar país seleccionado en la parte superior derecha del header
+  if (headerCountryBadge) headerCountryBadge.style.display = 'block';
+
   // Cambiar vista del panel
   viewIntro.classList.remove('active');
   viewCountrySelected.classList.add('active');
@@ -345,6 +349,8 @@ btnBackToIntro.addEventListener('click', () => {
 
   selectedCountry = null;
   d3.selectAll('.country').classed('country-selected', false);
+
+  if (headerCountryBadge) headerCountryBadge.style.display = 'none';
 
   viewCountrySelected.classList.remove('active');
   viewIntro.classList.add('active');
@@ -584,8 +590,8 @@ function startChartRace() {
       .attr('stroke-width', 1);
   });
 
-  // Animación continua y fluida
-  const duration = 3800;
+  // Animación continua y fluida (tiempo duplicado para sonificación y lectura pausada: ~7.6 segundos)
+  const duration = 7600;
   let startTime = null;
 
   if (chartAnimationId) cancelAnimationFrame(chartAnimationId);

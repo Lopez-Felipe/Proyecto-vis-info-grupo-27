@@ -34,9 +34,16 @@
     <!-- Columna Derecha: Panel de Información y Acciones -->
     <aside class="panel-section">
       <header class="panel-header">
-        <span class="badge">Visualización de Información</span>
-        <h1>La Carrera de la Descarbonización</h1>
-        <p class="subtitle">2000 – 2026 • Enfoque Temporal y Velocidad</p>
+        <div class="panel-header-left">
+          <span class="badge">Visualización de Información</span>
+          <h1>La Carrera de la Descarbonización</h1>
+          <p class="subtitle">2000 – 2026 • Enfoque Temporal y Velocidad</p>
+        </div>
+        <!-- País Seleccionado movido al header a la derecha (zona verde) para ahorrar espacio vertical -->
+        <div id="header-country-badge" class="header-country-badge" style="display: none;">
+          <span class="country-pill">País Seleccionado</span>
+          <h2 id="selected-country-name">Estados Unidos</h2>
+        </div>
       </header>
 
       <!-- Vista 1: Breve Explicación e Indicación Inicial (Plano Base) -->
@@ -85,11 +92,6 @@
 
       <!-- Vista 2: Vista al seleccionar un país con los 3 botones y el gráfico -->
       <div id="view-country-selected" class="panel-view">
-        <div class="selected-country-header">
-          <span class="country-pill">País Seleccionado</span>
-          <h2 id="selected-country-name">Nombre del País</h2>
-        </div>
-
         <!-- Leyenda permanente fuera del gráfico para identificar fuentes -->
         <div class="permanent-legend-bar">
           <span class="legend-bar-title">Clasificación de Fuentes Energéticas</span>
