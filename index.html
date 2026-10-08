@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>La Carrera de la Descarbonización: 2000–2026</title>
+  <!-- Fuente tipográfica moderna -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <!-- D3.js y TopoJSON para renderizado de mapas con zoom y arrastre -->
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/dist/topojson-client.min.js"></script>
+</head>
+<body>
+  <div class="app-layout">
+    <!-- Columna Izquierda: Mapa Interactivo de América (Globo Terráqueo) -->
+    <section class="map-section">
+      <div class="map-controls">
+        <button id="btn-zoom-in" title="Acercar" aria-label="Acercar mapa">+</button>
+        <button id="btn-zoom-out" title="Alejar" aria-label="Alejar mapa">−</button>
+        <button id="btn-reset-view" title="Reiniciar vista" aria-label="Reiniciar vista">↺</button>
+      </div>
+      <div id="map-container" class="map-container">
+        <!-- SVG renderizado dinámicamente con D3 -->
+      </div>
+      <div class="map-hint">
+        <span>🖱️ Arrastra para girar en 360° • Rueda para hacer zoom</span>
+      </div>
+      <div id="map-tooltip" class="map-tooltip" style="display: none;"></div>
+    </section>
+
+    <!-- Columna Derecha: Panel de Información y Acciones -->
+    <aside class="panel-section">
+      <header class="panel-header">
+        <span class="badge">Visualización de Información</span>
+        <h1>La Carrera de la Descarbonización</h1>
+        <p class="subtitle">2000 – 2026 • Enfoque Temporal y Velocidad</p>
+      </header>
+
+      <!-- Vista 1: Breve Explicación e Indicación Inicial (Plano Base) -->
+      <div id="view-intro" class="panel-view active">
+        <div class="concept-card">
+          <h2 class="card-title">Concepto Narrativo</h2>
+          <p class="card-description">
+            Una competencia sobre qué tan rápido han avanzado (o retrocedido) los países de la América en sustituir las fuentes fósiles por renovables directas.
+          </p>
+        </div>
+
+        <div class="question-card">
+          <h3 class="card-subtitle">Pregunta de Diseño</h3>
+          <p class="design-question">
+            «¿Quiénes lideran la transición energética en el continente y qué países se quedaron estancados en la era del carbón y el gas?»
+          </p>
+        </div>
+
+        <!-- Botones Top 5 en el plano base -->
+        <div class="top-ranking-toggle">
+          <button id="btn-show-top5" class="btn btn-ranking">
+            <span class="btn-icon">🏆</span>
+            <span class="btn-label">Ver Top 5 Transición Renovable</span>
+          </button>
+        </div>
+
+        <!-- Contenedor desplegable del Top 5 -->
+        <div id="top5-container" class="top5-container" style="display: none;">
+          <div class="top5-tabs">
+            <button id="tab-top-mayor" class="tab-btn active">⚡ Mayor Avance (+)</button>
+            <button id="tab-top-menor" class="tab-btn">⚠️ Menor Avance / Retroceso (−)</button>
+          </div>
+          <div id="top5-list" class="top5-list">
+            <!-- Items renderizados dinámicamente -->
+          </div>
+        </div>
+
+        <div class="indicator-box">
+          <div class="indicator-icon">👈</div>
+          <div class="indicator-text">
+            <strong>Selecciona un país en el mapa</strong>
+            <p>Haz clic en cualquiera de los países participantes destacados en el mapa para continuar.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Vista 2: Vista al seleccionar un país con los 3 botones y el gráfico -->
+      <div id="view-country-selected" class="panel-view">
+        <div class="selected-country-header">
+          <span class="country-pill">País Seleccionado</span>
+          <h2 id="selected-country-name">Nombre del País</h2>
+        </div>
+
+        <div class="actions-group">
+          <!-- Botón 1: Seleccionar opciones -->
+          <button id="btn-select-options" class="btn btn-secondary">
+            <span class="btn-icon">⚙️</span>
+            <span class="btn-label">Seleccionar opciones</span>
+          </button>
+
+          <!-- Menú desplegable de opciones de fuentes (Fósiles y Renovables seleccionadas de default) -->
+          <div id="options-panel" class="options-panel" style="display: none;">
+            <span class="options-title">Fuentes visibles en la carrera:</span>
+            <div class="options-checkboxes">
+              <label class="custom-checkbox fossil-check">
+                <input type="checkbox" id="check-fossil" checked>
+                <span class="checkbox-box"></span>
+                <span class="checkbox-label">🔥 Fuentes Fósiles (Carbón, Gas, Petróleo)</span>
+              </label>
+              <label class="custom-checkbox renew-check">
+                <input type="checkbox" id="check-renew" checked>
+                <span class="checkbox-box"></span>
+                <span class="checkbox-label">🌱 Fuentes Renovables (Solar, Eólica, Hidro, Bio)</span>
+              </label>
+            </div>
+            <div class="options-metric">
+              <span class="options-title">Métrica del eje temporal:</span>
+              <div class="metric-radios">
+                <label><input type="radio" name="metric-type" value="gen" checked> Generación Anual (TWh)</label>
+                <label><input type="radio" name="metric-type" value="share"> Participación (%)</label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Botón 2: Comenzar -->
+          <button id="btn-start" class="btn btn-primary">
+            <span class="btn-icon">▶</span>
+            <span class="btn-label">Comenzar</span>
+          </button>
+
+          <!-- Botón 3: Volver a la breve explicación -->
+          <button id="btn-back-to-intro" class="btn btn-tertiary">
+            <span class="btn-icon">←</span>
+            <span class="btn-label">Volver a la breve explicación</span>
+          </button>
+        </div>
+
+        <!-- Contenedor del Gráfico Temporal que se revela fluidamente al presionar 'Comenzar' -->
+        <div id="chart-card" class="chart-card">
+          <div class="chart-header">
+            <div class="chart-title-group">
+              <h3 id="chart-title">Evolución Anual de Fuentes de Energía</h3>
+              <span id="chart-year-badge" class="chart-year-badge">Año 2000</span>
+            </div>
+            <div class="chart-legend">
+              <span id="legend-fossil" class="legend-item legend-fossil"><span class="legend-color"></span> Fósil</span>
+              <span id="legend-renew" class="legend-item legend-renew"><span class="legend-color"></span> Renovable</span>
+            </div>
+          </div>
+
+          <!-- Estado previo a dar clic en comenzar -->
+          <div id="chart-placeholder" class="chart-placeholder">
+            <div class="placeholder-icon">📊</div>
+            <p>Fuentes <strong>Fósil</strong> y <strong>Renovable</strong> seleccionadas por defecto.</p>
+            <small>Presiona <strong>«Comenzar»</strong> para reproducir la carrera temporal año a año.</small>
+          </div>
+
+          <!-- Lienzo SVG del gráfico animado horizontalmente -->
+          <div id="chart-container" class="chart-container" style="display: none;"></div>
+          
+          <!-- Controles de playback post-comienzo -->
+          <div id="chart-playback-bar" class="chart-playback-bar" style="display: none;">
+            <div class="progress-track">
+              <div id="playback-progress" class="progress-fill"></div>
+            </div>
+            <div class="playback-info">
+              <span id="playback-status">Reproduciendo transición...</span>
+              <button id="btn-replay" class="btn-replay-small" title="Repetir animación">↻ Reiniciar</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Estado de prueba / feedback simple cuando se pulse alguna opción -->
+        <div id="action-feedback" class="action-feedback" style="display: none;"></div>
+      </div>
+    </aside>
+  </div>
+
+  <script src="main.js"></script>
+</body>
+</html>
