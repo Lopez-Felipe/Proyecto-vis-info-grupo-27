@@ -9,13 +9,13 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
-  <!-- D3.js y TopoJSON para renderizado de mapas con zoom y arrastre -->
+  <!-- D3.js y TopoJSON para renderizado del globo y gráficos -->
   <script src="https://d3js.org/d3.v7.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/dist/topojson-client.min.js"></script>
 </head>
 <body>
   <div class="app-layout">
-    <!-- Columna Izquierda: Mapa Interactivo de América (Globo Terráqueo) -->
+    <!-- Columna Izquierda: Mapa Interactivo Compacto de América (Globo Terráqueo) -->
     <section class="map-section">
       <div class="map-controls">
         <button id="btn-zoom-in" title="Acercar" aria-label="Acercar mapa">+</button>
@@ -23,15 +23,15 @@
         <button id="btn-reset-view" title="Reiniciar vista" aria-label="Reiniciar vista">↺</button>
       </div>
       <div id="map-container" class="map-container">
-        <!-- SVG renderizado dinámicamente con D3 -->
+        <!-- SVG Globo terráqueo renderizado dinámicamente con D3 -->
       </div>
       <div class="map-hint">
-        <span>🖱️ Arrastra para girar en 360° • Rueda para hacer zoom</span>
+        <span>🖱️ Arrastra para girar • Rueda para zoom</span>
       </div>
       <div id="map-tooltip" class="map-tooltip" style="display: none;"></div>
     </section>
 
-    <!-- Columna Derecha: Panel de Información y Acciones -->
+    <!-- Columna Derecha: Panel Principal con Espacio Amplio para Gráficos -->
     <aside class="panel-section">
       <header class="panel-header">
         <span class="badge">Visualización de Información</span>
@@ -77,17 +77,47 @@
         <div class="indicator-box">
           <div class="indicator-icon">👈</div>
           <div class="indicator-text">
-            <strong>Selecciona un país en el mapa</strong>
-            <p>Haz clic en cualquiera de los países participantes destacados en el mapa para continuar.</p>
+            <strong>Selecciona un país en el globo</strong>
+            <p>Haz clic en cualquiera de los países participantes destacados en el mapa para ingresar al panel de análisis.</p>
           </div>
         </div>
       </div>
 
-      <!-- Vista 2: Vista al seleccionar un país con los 3 botones y el gráfico -->
+      <!-- Vista 2: Vista al seleccionar un país -->
       <div id="view-country-selected" class="panel-view">
         <div class="selected-country-header">
           <span class="country-pill">País Seleccionado</span>
           <h2 id="selected-country-name">Nombre del País</h2>
+        </div>
+
+        <!-- Leyenda permanente fuera del gráfico para identificar fuentes -->
+        <div class="permanent-legend-bar">
+          <span class="legend-bar-title">Clasificación de Fuentes Energéticas</span>
+          <div class="legend-categories">
+            <div class="legend-group-box legend-box-renew">
+              <div class="legend-group-header">
+                <span>🌱 Fuentes Renovables</span>
+              </div>
+              <div class="legend-items-flow">
+                <span class="legend-pill"><span class="legend-dot-indicator" style="background:#f59e0b;"></span> Solar</span>
+                <span class="legend-pill"><span class="legend-dot-indicator" style="background:#06b6d4;"></span> Eólica</span>
+                <span class="legend-pill"><span class="legend-dot-indicator" style="background:#3b82f6;"></span> Hidro</span>
+                <span class="legend-pill"><span class="legend-dot-indicator" style="background:#84cc16;"></span> Bioenergía</span>
+                <span class="legend-pill"><span class="legend-dot-indicator" style="background:#10b981;"></span> Otras ren.</span>
+              </div>
+            </div>
+
+            <div class="legend-group-box legend-box-fossil">
+              <div class="legend-group-header">
+                <span>🔥 Fuentes Fósiles</span>
+              </div>
+              <div class="legend-items-flow">
+                <span class="legend-pill"><span class="legend-dot-indicator" style="background:#64748b;"></span> Carbón</span>
+                <span class="legend-pill"><span class="legend-dot-indicator" style="background:#f97316;"></span> Gas</span>
+                <span class="legend-pill"><span class="legend-dot-indicator" style="background:#e11d48;"></span> Otros fósiles</span>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div class="actions-group">
@@ -97,25 +127,92 @@
             <span class="btn-label">Seleccionar opciones</span>
           </button>
 
-          <!-- Menú desplegable de opciones de fuentes (Fósiles y Renovables seleccionadas de default) -->
+          <!-- Menú de opciones de fuentes energéticas -->
           <div id="options-panel" class="options-panel" style="display: none;">
-            <span class="options-title">Fuentes visibles en la carrera:</span>
-            <div class="options-checkboxes">
-              <label class="custom-checkbox fossil-check">
-                <input type="checkbox" id="check-fossil" checked>
-                <span class="checkbox-box"></span>
-                <span class="checkbox-label">🔥 Fuentes Fósiles (Carbón, Gas, Petróleo)</span>
-              </label>
-              <label class="custom-checkbox renew-check">
-                <input type="checkbox" id="check-renew" checked>
-                <span class="checkbox-box"></span>
-                <span class="checkbox-label">🌱 Fuentes Renovables (Solar, Eólica, Hidro, Bio)</span>
+            
+            <!-- Opción unificada: Renovables vs Fósiles -->
+            <div class="options-section">
+              <span class="options-title">Visualización Macro:</span>
+              <label class="custom-checkbox-macro">
+                <input type="checkbox" id="check-macro-unified" checked>
+                <span class="macro-box"></span>
+                <span class="macro-label-unified">
+                  <span class="tag-renovables">🌱 Renovables</span>
+                  <span class="vs-badge">vs</span>
+                  <span class="tag-fosiles">🔥 Fósiles</span>
+                </span>
               </label>
             </div>
-            <div class="options-metric">
+
+            <!-- Energías por sí solas con colores únicos -->
+            <div class="options-section">
+              <span class="options-title">Desglose de Fuentes Específicas:</span>
+              <div class="individual-sources-grid">
+                <!-- Renovables individuales -->
+                <label class="source-item">
+                  <input type="checkbox" class="source-checkbox" data-source="Solar" data-color="#f59e0b">
+                  <span class="source-dot" style="background-color: #f59e0b;"></span>
+                  <span class="source-name">Solar</span>
+                  <span class="source-group-tag tag-sub-ren">Ren.</span>
+                </label>
+
+                <label class="source-item">
+                  <input type="checkbox" class="source-checkbox" data-source="Wind" data-color="#06b6d4">
+                  <span class="source-dot" style="background-color: #06b6d4;"></span>
+                  <span class="source-name">Eólica</span>
+                  <span class="source-group-tag tag-sub-ren">Ren.</span>
+                </label>
+
+                <label class="source-item">
+                  <input type="checkbox" class="source-checkbox" data-source="Hydro" data-color="#3b82f6">
+                  <span class="source-dot" style="background-color: #3b82f6;"></span>
+                  <span class="source-name">Hidroeléctrica</span>
+                  <span class="source-group-tag tag-sub-ren">Ren.</span>
+                </label>
+
+                <label class="source-item">
+                  <input type="checkbox" class="source-checkbox" data-source="Bioenergy" data-color="#84cc16">
+                  <span class="source-dot" style="background-color: #84cc16;"></span>
+                  <span class="source-name">Bioenergía</span>
+                  <span class="source-group-tag tag-sub-ren">Ren.</span>
+                </label>
+
+                <label class="source-item">
+                  <input type="checkbox" class="source-checkbox" data-source="Other renewables" data-color="#10b981">
+                  <span class="source-dot" style="background-color: #10b981;"></span>
+                  <span class="source-name">Otras Renovables</span>
+                  <span class="source-group-tag tag-sub-ren">Ren.</span>
+                </label>
+
+                <!-- Fósiles individuales -->
+                <label class="source-item">
+                  <input type="checkbox" class="source-checkbox" data-source="Coal" data-color="#64748b">
+                  <span class="source-dot" style="background-color: #64748b;"></span>
+                  <span class="source-name">Carbón</span>
+                  <span class="source-group-tag tag-sub-fos">Fósil</span>
+                </label>
+
+                <label class="source-item">
+                  <input type="checkbox" class="source-checkbox" data-source="Gas" data-color="#f97316">
+                  <span class="source-dot" style="background-color: #f97316;"></span>
+                  <span class="source-name">Gas Natural</span>
+                  <span class="source-group-tag tag-sub-fos">Fósil</span>
+                </label>
+
+                <label class="source-item">
+                  <input type="checkbox" class="source-checkbox" data-source="Other fossil" data-color="#e11d48">
+                  <span class="source-dot" style="background-color: #e11d48;"></span>
+                  <span class="source-name">Otros Fósiles</span>
+                  <span class="source-group-tag tag-sub-fos">Fósil</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Métrica del eje temporal -->
+            <div class="options-section">
               <span class="options-title">Métrica del eje temporal:</span>
               <div class="metric-radios">
-                <label><input type="radio" name="metric-type" value="gen" checked> Generación Anual (TWh)</label>
+                <label><input type="radio" name="metric-type" value="gen" checked> Generación (TWh)</label>
                 <label><input type="radio" name="metric-type" value="share"> Participación (%)</label>
               </div>
             </div>
@@ -134,27 +231,23 @@
           </button>
         </div>
 
-        <!-- Contenedor del Gráfico Temporal que se revela fluidamente al presionar 'Comenzar' -->
+        <!-- Tarjeta del Gráfico Temporal Ampliado -->
         <div id="chart-card" class="chart-card">
           <div class="chart-header">
             <div class="chart-title-group">
-              <h3 id="chart-title">Evolución Anual de Fuentes de Energía</h3>
-              <span id="chart-year-badge" class="chart-year-badge">Año 2000</span>
+              <h3 id="chart-title">Evolución Anual de Generación Eléctrica</h3>
             </div>
-            <div class="chart-legend">
-              <span id="legend-fossil" class="legend-item legend-fossil"><span class="legend-color"></span> Fósil</span>
-              <span id="legend-renew" class="legend-item legend-renew"><span class="legend-color"></span> Renovable</span>
-            </div>
+            <span id="chart-year-badge" class="chart-year-badge">Año 2000</span>
           </div>
 
-          <!-- Estado previo a dar clic en comenzar -->
+          <!-- Estado previo a presionar 'Comenzar' -->
           <div id="chart-placeholder" class="chart-placeholder">
             <div class="placeholder-icon">📊</div>
-            <p>Fuentes <strong>Fósil</strong> y <strong>Renovable</strong> seleccionadas por defecto.</p>
-            <small>Presiona <strong>«Comenzar»</strong> para reproducir la carrera temporal año a año.</small>
+            <p>Configuración lista: <strong>Renovables vs Fósiles</strong> activos por defecto.</p>
+            <small>Presiona <strong>«Comenzar»</strong> para reproducir la carrera temporal fluida año a año.</small>
           </div>
 
-          <!-- Lienzo SVG del gráfico animado horizontalmente -->
+          <!-- SVG del Gráfico de mayor visibilidad -->
           <div id="chart-container" class="chart-container" style="display: none;"></div>
           
           <!-- Controles de playback post-comienzo -->
@@ -169,8 +262,6 @@
           </div>
         </div>
 
-        <!-- Estado de prueba / feedback simple cuando se pulse alguna opción -->
-        <div id="action-feedback" class="action-feedback" style="display: none;"></div>
       </div>
     </aside>
   </div>
