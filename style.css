@@ -497,6 +497,62 @@ body {
   transform: translateY(-2px);
 }
 
+/* LEYENDA PERMANENTE FUERA DEL GRÁFICO */
+.permanent-legend-bar {
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.legend-bar-title {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  font-weight: 700;
+}
+
+.legend-categories {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.legend-group-box {
+  background: rgba(11, 17, 30, 0.5);
+  border-radius: 6px;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-left: 3px solid;
+}
+
+.legend-box-renew {
+  border-left-color: #10b981;
+}
+
+.legend-box-fossil {
+  border-left-color: #ef4444;
+}
+
+.legend-group-text {
+  font-size: 0.82rem;
+  color: #cbd5e1;
+  font-weight: 600;
+}
+
+.legend-dot-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
 /* Panel Desplegable de Opciones */
 .options-panel {
   background: #0f172a;
