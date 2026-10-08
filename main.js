@@ -76,8 +76,7 @@ const viewCountrySelected = document.getElementById('view-country-selected');
 const selectedCountryNameEl = document.getElementById('selected-country-name');
 const btnSelectOptions = document.getElementById('btn-select-options');
 const optionsPanel = document.getElementById('options-panel');
-const checkFossil = document.getElementById('check-fossil');
-const checkRenew = document.getElementById('check-renew');
+const checkMacroUnified = document.getElementById('check-macro-unified');
 const btnStart = document.getElementById('btn-start');
 const btnBackToIntro = document.getElementById('btn-back-to-intro');
 const actionFeedback = document.getElementById('action-feedback');
@@ -306,9 +305,8 @@ function selectCountry(countryName, element) {
   const displayName = NOMBRES_ESP[countryName] || countryName;
   selectedCountryNameEl.textContent = displayName;
 
-  // Estado por defecto: Fuentes Fósil y Renovable activadas
-  checkFossil.checked = true;
-  checkRenew.checked = true;
+  // Estado por defecto: Opción unificada Renovables vs Fósiles activada
+  if (checkMacroUnified) checkMacroUnified.checked = true;
   showFossil = true;
   showRenew = true;
   optionsPanel.style.display = 'none';
@@ -346,17 +344,16 @@ btnSelectOptions.addEventListener('click', () => {
   optionsPanel.style.display = isHidden ? 'flex' : 'none';
 });
 
-checkFossil.addEventListener('change', (e) => {
-  showFossil = e.target.checked;
-  const leg = document.getElementById('legend-fossil');
-  if (leg) leg.style.opacity = showFossil ? '1' : '0.3';
-});
-
-checkRenew.addEventListener('change', (e) => {
-  showRenew = e.target.checked;
-  const leg = document.getElementById('legend-renew');
-  if (leg) leg.style.opacity = showRenew ? '1' : '0.3';
-});
+if (checkMacroUnified) {
+  checkMacroUnified.addEventListener('change', (e) => {
+    showFossil = e.target.checked;
+    showRenew = e.target.checked;
+    const legF = document.getElementById('legend-fossil');
+    const legR = document.getElementById('legend-renew');
+    if (legF) legF.style.opacity = showFossil ? '1' : '0.3';
+    if (legR) legR.style.opacity = showRenew ? '1' : '0.3';
+  });
+}
 
 document.querySelectorAll('input[name="metric-type"]').forEach((radio) => {
   radio.addEventListener('change', (e) => {
