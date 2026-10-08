@@ -45,20 +45,6 @@ const NOMBRES_ESP = {
   'Venezuela': 'Venezuela'
 };
 
-// Paleta cromática semántica para fuentes individuales (Normativa del curso)
-const FUENTES_CONFIG = {
-  'Renewables': { label: 'Renovables (Total)', color: '#10b981', type: 'macro' },
-  'Fossil': { label: 'Fósiles (Total)', color: '#ef4444', type: 'macro' },
-  'Solar': { label: 'Solar', color: '#f59e0b', type: 'individual', category: 'ren' },
-  'Wind': { label: 'Eólica', color: '#06b6d4', type: 'individual', category: 'ren' },
-  'Hydro': { label: 'Hidroeléctrica', color: '#3b82f6', type: 'individual', category: 'ren' },
-  'Bioenergy': { label: 'Bioenergía', color: '#84cc16', type: 'individual', category: 'ren' },
-  'Other renewables': { label: 'Otras Renovables', color: '#10b981', type: 'individual', category: 'ren' },
-  'Coal': { label: 'Carbón', color: '#64748b', type: 'individual', category: 'fos' },
-  'Gas': { label: 'Gas Natural', color: '#f97316', type: 'individual', category: 'fos' },
-  'Other fossil': { label: 'Otros Fósiles', color: '#e11d48', type: 'individual', category: 'fos' }
-};
-
 // Datos calculados del Top 5 de transición (2000 vs Último año disponible)
 const TOP5_MAYOR = [
   { country: 'Nicaragua', start_year: 2000, end_year: 2024, start_share: 21.5, end_share: 62.4, diff: 40.9 },
@@ -81,6 +67,8 @@ let energyData = {};
 let selectedCountry = null;
 let chartAnimationId = null;
 let currentMetric = 'gen'; // 'gen' (TWh) o 'share' (%)
+let showFossil = true;
+let showRenew = true;
 
 // Elementos del DOM
 const viewIntro = document.getElementById('view-intro');
@@ -88,7 +76,8 @@ const viewCountrySelected = document.getElementById('view-country-selected');
 const selectedCountryNameEl = document.getElementById('selected-country-name');
 const btnSelectOptions = document.getElementById('btn-select-options');
 const optionsPanel = document.getElementById('options-panel');
-const checkMacroUnified = document.getElementById('check-macro-unified');
+const checkFossil = document.getElementById('check-fossil');
+const checkRenew = document.getElementById('check-renew');
 const btnStart = document.getElementById('btn-start');
 const btnBackToIntro = document.getElementById('btn-back-to-intro');
 const actionFeedback = document.getElementById('action-feedback');
@@ -317,9 +306,11 @@ function selectCountry(countryName, element) {
   const displayName = NOMBRES_ESP[countryName] || countryName;
   selectedCountryNameEl.textContent = displayName;
 
-  // Estado por defecto: "Renovables vs Fósiles" activo, fuentes individuales desmarcadas
-  checkMacroUnified.checked = true;
-  document.querySelectorAll('.source-checkbox').forEach(cb => cb.checked = false);
+  // Estado por defecto: Fuentes Fósil y Renovable activadas
+  checkFossil.checked = true;
+  checkRenew.checked = true;
+  showFossil = true;
+  showRenew = true;
   optionsPanel.style.display = 'none';
 
   // Ocultar información del gráfico hasta que se presione Comenzar
@@ -355,14 +346,16 @@ btnSelectOptions.addEventListener('click', () => {
   optionsPanel.style.display = isHidden ? 'flex' : 'none';
 });
 
-checkMacroUnified.addEventListener('change', () => {
-  // Configuración actualizada, esperando clic en Comenzar
+checkFossil.addEventListener('change', (e) => {
+  showFossil = e.target.checked;
+  const leg = document.getElementById('legend-fossil');
+  if (leg) leg.style.opacity = showFossil ? '1' : '0.3';
 });
 
-document.querySelectorAll('.source-checkbox').forEach(cb => {
-  cb.addEventListener('change', () => {
-    // Configuración actualizada, esperando clic en Comenzar
-  });
+checkRenew.addEventListener('change', (e) => {
+  showRenew = e.target.checked;
+  const leg = document.getElementById('legend-renew');
+  if (leg) leg.style.opacity = showRenew ? '1' : '0.3';
 });
 
 document.querySelectorAll('input[name="metric-type"]').forEach((radio) => {
@@ -385,7 +378,7 @@ btnReplay.addEventListener('click', () => {
 // ==========================================
 function startChartRace() {
   if (!selectedCountry || !energyData[selectedCountry]) {
-    alert('No se encontraron datos energéticos para ' + selectedCountry);
+    alert('No hay datos energéticos disponibles para ' + selectedCountry);
     return;
   }
 
@@ -393,61 +386,16 @@ function startChartRace() {
   const years = countryData.years;
   if (!years || years.length === 0) return;
 
-  // Preparar series a dibujar según las opciones seleccionadas
-  const seriesToDraw = [];
-
-  // 1. Si está marcada la opción macro unificada Renovables vs Fósiles
-  if (checkMacroUnified && checkMacroUnified.checked) {
-    if (countryData.sources['Renewables']) {
-      seriesToDraw.push({
-        key: 'Renewables',
-        label: '🌱 Renovables',
-        color: FUENTES_CONFIG['Renewables'].color,
-        values: currentMetric === 'gen' ? countryData.sources['Renewables'].gen : countryData.sources['Renewables'].share,
-        isMacro: true
-      });
-    }
-    if (countryData.sources['Fossil']) {
-      seriesToDraw.push({
-        key: 'Fossil',
-        label: '🔥 Fósiles',
-        color: FUENTES_CONFIG['Fossil'].color,
-        values: currentMetric === 'gen' ? countryData.sources['Fossil'].gen : countryData.sources['Fossil'].share,
-        isMacro: true
-      });
-    }
-  }
-
-  // 2. Fuentes individuales marcadas
-  document.querySelectorAll('.source-checkbox:checked').forEach(cb => {
-    const sKey = cb.getAttribute('data-source');
-    if (countryData.sources && countryData.sources[sKey]) {
-      const cfg = FUENTES_CONFIG[sKey];
-      seriesToDraw.push({
-        key: sKey,
-        label: cfg.label,
-        color: cfg.color,
-        values: currentMetric === 'gen' ? countryData.sources[sKey].gen : countryData.sources[sKey].share,
-        isMacro: false
-      });
-    }
-  });
-
-  if (seriesToDraw.length === 0) {
-    alert('Por favor selecciona al menos una opción en "Seleccionar opciones".');
-    return;
-  }
-
-  // Mostrar gráfico y barra de reproducción
+  // Mostrar contenedor de gráfico y playback bar
   chartPlaceholder.style.display = 'none';
   chartContainer.style.display = 'block';
   chartPlaybackBar.style.display = 'flex';
   optionsPanel.style.display = 'none';
 
-  // Dimensiones ampliadas para mejor visualización
+  // Configuración de dimensiones ampliadas
   const width = chartContainer.clientWidth || 550;
   const height = 290;
-  const margin = { top: 20, right: 35, bottom: 35, left: 55 };
+  const margin = { top: 20, right: 30, bottom: 35, left: 50 };
 
   chartContainer.innerHTML = '';
 
@@ -459,6 +407,7 @@ function startChartRace() {
   const innerW = width - margin.left - margin.right;
   const innerH = height - margin.top - margin.bottom;
 
+  // Escalas
   const minYear = years[0];
   const maxYear = years[years.length - 1];
 
@@ -466,13 +415,12 @@ function startChartRace() {
     .domain([minYear, maxYear])
     .range([0, innerW]);
 
-  // Encontrar valor máximo para el eje Y
-  let allVals = [];
-  seriesToDraw.forEach(s => {
-    allVals = allVals.concat(s.values);
-  });
-  const maxVal = d3.max(allVals) || 10;
-  const yMax = currentMetric === 'share' ? 100 : Math.max(10, maxVal * 1.15);
+  // Valores máximos para escala Y según métrica
+  const fossilVals = currentMetric === 'gen' ? countryData.fossil_gen : countryData.fossil_share;
+  const renewVals = currentMetric === 'gen' ? countryData.renew_gen : countryData.renew_share;
+  const yMax = currentMetric === 'share' 
+    ? 100 
+    : Math.max(10, d3.max([...fossilVals, ...renewVals]) * 1.15);
 
   const yScale = d3.scaleLinear()
     .domain([0, yMax])
@@ -481,9 +429,14 @@ function startChartRace() {
   const g = svg.append('g')
     .attr('transform', `translate(${margin.left},${margin.top})`);
 
-  // Ejes X e Y
-  const xAxis = d3.axisBottom(xScale).ticks(6).tickFormat(d3.format('d'));
-  const yAxis = d3.axisLeft(yScale).ticks(5).tickFormat((d) => (currentMetric === 'share' ? `${d}%` : `${d} TWh`));
+  // Ejes
+  const xAxis = d3.axisBottom(xScale)
+    .ticks(5)
+    .tickFormat(d3.format('d'));
+
+  const yAxis = d3.axisLeft(yScale)
+    .ticks(5)
+    .tickFormat((d) => (currentMetric === 'share' ? `${d}%` : `${d} TWh`));
 
   g.append('g')
     .attr('class', 'axis axis-x')
@@ -496,11 +449,11 @@ function startChartRace() {
     .call(yAxis)
     .attr('color', '#64748b');
 
-  // Cuadrícula horizontal sutil
+  // Cuadrícula de fondo
   g.append('g')
     .attr('class', 'grid')
     .call(d3.axisLeft(yScale).ticks(5).tickSize(-innerW).tickFormat(''))
-    .attr('stroke', 'rgba(255,255,255,0.06)');
+    .attr('stroke', 'rgba(255,255,255,0.05)');
 
   // Clip Path para revelación horizontal continua
   const clipId = `clip-race-${Date.now()}`;
@@ -511,39 +464,64 @@ function startChartRace() {
     .attr('id', 'clip-rect')
     .attr('x', 0)
     .attr('y', 0)
-    .attr('width', 0)
+    .attr('width', 0) // Comienza oculto a la izquierda
     .attr('height', innerH);
 
-  const chartArea = g.append('g').attr('clip-path', `url(#${clipId})`);
+  const chartArea = g.append('g')
+    .attr('clip-path', `url(#${clipId})`);
 
-  // Líneas y áreas para cada serie
-  seriesToDraw.forEach(s => {
-    const lineGen = d3.line()
+  // Generadores de línea
+  const fossilLineGen = d3.line()
+    .x((d, i) => xScale(years[i]))
+    .y((d) => yScale(d))
+    .curve(d3.curveMonotoneX);
+
+  const renewLineGen = d3.line()
+    .x((d, i) => xScale(years[i]))
+    .y((d) => yScale(d))
+    .curve(d3.curveMonotoneX);
+
+  // Línea y área Fósil
+  if (showFossil) {
+    const fossilAreaGen = d3.area()
       .x((d, i) => xScale(years[i]))
-      .y((d) => yScale(d))
+      .y0(innerH)
+      .y1((d) => yScale(d))
       .curve(d3.curveMonotoneX);
 
-    if (s.isMacro) {
-      const areaGen = d3.area()
-        .x((d, i) => xScale(years[i]))
-        .y0(innerH)
-        .y1((d) => yScale(d))
-        .curve(d3.curveMonotoneX);
-
-      chartArea.append('path')
-        .datum(s.values)
-        .attr('d', areaGen)
-        .attr('fill', s.color)
-        .attr('fill-opacity', 0.12);
-    }
+    chartArea.append('path')
+      .datum(fossilVals)
+      .attr('d', fossilAreaGen)
+      .attr('fill', 'rgba(244, 63, 94, 0.12)');
 
     chartArea.append('path')
-      .datum(s.values)
-      .attr('d', lineGen)
+      .datum(fossilVals)
+      .attr('d', fossilLineGen)
       .attr('fill', 'none')
-      .attr('stroke', s.color)
-      .attr('stroke-width', s.isMacro ? 3.0 : 2.2);
-  });
+      .attr('stroke', '#f43f5e')
+      .attr('stroke-width', 2.8);
+  }
+
+  // Línea y área Renovable
+  if (showRenew) {
+    const renewAreaGen = d3.area()
+      .x((d, i) => xScale(years[i]))
+      .y0(innerH)
+      .y1((d) => yScale(d))
+      .curve(d3.curveMonotoneX);
+
+    chartArea.append('path')
+      .datum(renewVals)
+      .attr('d', renewAreaGen)
+      .attr('fill', 'rgba(16, 185, 129, 0.12)');
+
+    chartArea.append('path')
+      .datum(renewVals)
+      .attr('d', renewLineGen)
+      .attr('fill', 'none')
+      .attr('stroke', '#10b981')
+      .attr('stroke-width', 2.8);
+  }
 
   // Cursor vertical animado
   const cursorLine = g.append('line')
@@ -555,53 +533,49 @@ function startChartRace() {
     .attr('x1', 0)
     .attr('x2', 0);
 
-  // Puntos guía para cada serie trazada
-  const guideDots = seriesToDraw.map(s => {
-    return g.append('circle')
-      .attr('r', s.isMacro ? 5.5 : 4)
-      .attr('fill', s.color)
-      .attr('stroke', '#ffffff')
-      .attr('stroke-width', 1);
-  });
+  // Puntos indicadores flotantes en el frente del cursor
+  const dotFossil = g.append('circle').attr('r', 5).attr('fill', '#f43f5e').style('display', showFossil ? 'block' : 'none');
+  const dotRenew = g.append('circle').attr('r', 5).attr('fill', '#10b981').style('display', showRenew ? 'block' : 'none');
 
-  // Animación continua y fluida
-  const duration = 3800; // ~3.8s para recorrer el período
+  // Animación continua y fluida horizontal usando requestAnimationFrame
+  const duration = 4000; // 4 segundos para recorrer todo el período
   let startTime = null;
 
   if (chartAnimationId) cancelAnimationFrame(chartAnimationId);
-  playbackStatus.textContent = 'Revelando generación año a año...';
+
+  playbackStatus.textContent = 'Corriendo la carrera...';
 
   function animate(timestamp) {
     if (!startTime) startTime = timestamp;
     const elapsed = timestamp - startTime;
     const progress = Math.min(elapsed / duration, 1);
 
+    // Ancho revelado horizontalmente
     const currentX = innerW * progress;
     svg.select('#clip-rect').attr('width', currentX);
 
+    // Año actual correspondiente
     const currentYearVal = minYear + (maxYear - minYear) * progress;
     const displayYear = Math.min(Math.round(currentYearVal), maxYear);
     chartYearBadge.textContent = `Año ${displayYear}`;
 
+    // Mover cursor
     cursorLine.attr('x1', currentX).attr('x2', currentX);
 
-    const idx = Math.min(Math.floor(progress * (years.length - 1)), years.length - 1);
-    seriesToDraw.forEach((s, i) => {
-      guideDots[i].attr('cx', currentX).attr('cy', yScale(s.values[idx]));
-    });
-
-    playbackProgress.style.width = `${progress * 100}%`;
-
-    if (progress < 1) {
-      chartAnimationId = requestAnimationFrame(animate);
-    } else {
-      playbackStatus.textContent = 'Transición completada ✓';
-      chartAnimationId = null;
+    // Calcular valores interpolados para los puntos guía
+    const idx = Math.min(
+      Math.floor(progress * (years.length - 1)),
+      years.length - 1
+    );
+    if (showFossil) {
+      dotFossil.attr('cx', currentX).attr('cy', yScale(fossilVals[idx]));
     }
-  }
+    if (showRenew) {
+      dotRenew.attr('cx', currentX).attr('cy', yScale(renewVals[idx]));
+    }
 
-  chartAnimationId = requestAnimationFrame(animate);
-}
+    // Barra de progreso
+    playbackProgress.style.width = `${progress * 100}%`;
 
     if (progress < 1) {
       chartAnimationId = requestAnimationFrame(animate);

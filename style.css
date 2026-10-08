@@ -497,132 +497,48 @@ body {
   transform: translateY(-2px);
 }
 
-/* LEYENDA PERMANENTE FUERA DEL GRÁFICO */
-.permanent-legend-bar {
-  background: var(--bg-surface-elevated);
-  border: 1px solid var(--border-subtle);
-  border-radius: 12px;
-  padding: 14px 18px;
+/* Panel Desplegable de Opciones */
+.options-panel {
+  background: #0f172a;
+  border: 1px solid var(--border-focus);
+  border-radius: 10px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  animation: fadeIn 0.2s ease;
+}
+
+.options-title {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-secondary);
+  font-weight: 700;
+}
+
+.options-checkboxes {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
-.legend-bar-title {
-  font-size: 0.74rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--text-muted);
-  font-weight: 700;
-}
-
-.legend-categories {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-}
-
-.legend-group-box {
-  background: rgba(11, 17, 30, 0.5);
-  border-radius: 8px;
-  padding: 10px 12px;
-  border-left: 3px solid;
-}
-
-.legend-box-renew {
-  border-left-color: #10b981;
-}
-
-.legend-box-fossil {
-  border-left-color: #ef4444;
-}
-
-.legend-group-header {
+.custom-checkbox {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 0.82rem;
-  font-weight: 700;
-  margin-bottom: 6px;
-}
-
-.legend-box-renew .legend-group-header {
-  color: #34d399;
-}
-
-.legend-box-fossil .legend-group-header {
-  color: #f87171;
-}
-
-.legend-items-flow {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.legend-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 0.72rem;
-  background: rgba(255, 255, 255, 0.05);
-  padding: 2px 7px;
-  border-radius: 4px;
-  color: #cbd5e1;
-}
-
-.legend-dot-indicator {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-}
-
-/* Panel Desplegable de Opciones */
-.options-panel {
-  background: #0d1527;
-  border: 1px solid var(--border-focus);
-  border-radius: 12px;
-  padding: 18px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  animation: fadeIn 0.2s ease;
-}
-
-.options-section {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.options-title {
-  font-size: 0.76rem;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--accent-cyan);
-  font-weight: 700;
-}
-
-/* Opción unificada: Renovables vs Fósiles */
-.custom-checkbox-macro {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  background: rgba(255, 255, 255, 0.04);
-  padding: 10px 14px;
-  border-radius: 8px;
-  border: 1px solid var(--border-subtle);
+  gap: 10px;
   cursor: pointer;
+  font-size: 0.88rem;
 }
 
-.custom-checkbox-macro input {
+.custom-checkbox input {
   display: none;
 }
 
-.macro-box {
-  width: 20px;
-  height: 20px;
-  border-radius: 5px;
+.checkbox-box {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
   border: 2px solid var(--text-muted);
   display: flex;
   align-items: center;
@@ -630,124 +546,32 @@ body {
   transition: all 0.2s;
 }
 
-.custom-checkbox-macro input:checked + .macro-box {
-  background: var(--accent-cyan);
-  border-color: var(--accent-cyan);
+.fossil-check input:checked + .checkbox-box {
+  background: var(--color-fossil);
+  border-color: var(--color-fossil);
 }
 
-.macro-box::after {
+.renew-check input:checked + .checkbox-box {
+  background: var(--color-renew);
+  border-color: var(--color-renew);
+}
+
+.checkbox-box::after {
   content: "✓";
-  font-size: 13px;
+  font-size: 12px;
   color: white;
   display: none;
 }
 
-.custom-checkbox-macro input:checked + .macro-box::after {
+.custom-checkbox input:checked + .checkbox-box::after {
   display: block;
 }
 
-.macro-label-unified {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.88rem;
-  font-weight: 600;
-}
-
-.tag-renovables {
-  background: rgba(16, 185, 129, 0.15);
-  color: #34d399;
-  border: 1px solid rgba(16, 185, 129, 0.4);
-  padding: 2px 8px;
-  border-radius: 6px;
-  font-weight: 700;
-}
-
-.vs-badge {
-  color: var(--text-muted);
-  font-size: 0.78rem;
-}
-
-.tag-fosiles {
-  background: rgba(239, 68, 68, 0.15);
-  color: #f87171;
-  border: 1px solid rgba(239, 68, 68, 0.4);
-  padding: 2px 8px;
-  border-radius: 6px;
-  font-weight: 700;
-}
-
-/* Grilla de Fuentes Individuales */
-.individual-sources-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 8px;
-}
-
-.source-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 7px 10px;
-  background: rgba(19, 29, 46, 0.6);
-  border-radius: 6px;
-  border: 1px solid var(--border-subtle);
-  cursor: pointer;
-  font-size: 0.82rem;
-  transition: all 0.15s ease;
-}
-
-.source-item:hover {
-  background: var(--bg-hover);
-}
-
-.source-item input {
-  display: none;
-}
-
-.source-dot {
-  width: 12px;
-  height: 12px;
-  border-radius: 3px;
-  border: 1px solid rgba(255,255,255,0.2);
-  transition: all 0.2s;
-}
-
-.source-item input:checked + .source-dot {
-  box-shadow: 0 0 6px currentColor;
-}
-
-.source-name {
-  color: #cbd5e1;
-}
-
-.source-item input:checked ~ .source-name {
-  color: #ffffff;
-  font-weight: 600;
-}
-
-.source-group-tag {
-  margin-left: auto;
-  font-size: 0.68rem;
-  padding: 1px 5px;
-  border-radius: 4px;
-}
-
-.tag-sub-ren {
-  color: #34d399;
-  background: rgba(16, 185, 129, 0.1);
-}
-
-.tag-sub-fos {
-  color: #f87171;
-  background: rgba(239, 68, 68, 0.1);
-}
-
-/* Radios de métrica */
 .metric-radios {
   display: flex;
   gap: 16px;
-  font-size: 0.84rem;
+  margin-top: 6px;
+  font-size: 0.85rem;
   color: var(--text-secondary);
 }
 
