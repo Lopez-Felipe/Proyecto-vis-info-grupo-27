@@ -62,7 +62,26 @@
           </p>
         </div>
 
-        <!-- Botones Top 5 en el plano base -->
+        <!-- 1. Botón Top 5 Pesos Pesados de Generación Eléctrica (Arriba) -->
+        <div class="top-ranking-toggle">
+          <button id="btn-show-top-gen" class="btn btn-ranking btn-ranking-gen">
+            <span class="btn-icon">⚡</span>
+            <span class="btn-label">Ver Pesos Pesados de Generación Eléctrica</span>
+          </button>
+        </div>
+
+        <!-- Contenedor desplegable del Top Generación -->
+        <div id="top-gen-container" class="top5-container" style="display: none;">
+          <div class="top5-tabs">
+            <button id="tab-gen-gigantes" class="tab-btn active">🐘 Mayores Productores (TWh)</button>
+            <button id="tab-gen-menores" class="tab-btn">🌱 Menores Productores (TWh)</button>
+          </div>
+          <div id="top-gen-list" class="top5-list">
+            <!-- Items de generación renderizados dinámicamente -->
+          </div>
+        </div>
+
+        <!-- 2. Botón Top 5 Transición Renovable (Abajo) -->
         <div class="top-ranking-toggle">
           <button id="btn-show-top5" class="btn btn-ranking">
             <span class="btn-icon">🏆</span>
@@ -243,7 +262,15 @@
             </div>
             <div class="playback-info">
               <span id="playback-status">Reproduciendo transición...</span>
-              <button id="btn-replay" class="btn-replay-small" title="Repetir animación">↻ Reiniciar</button>
+              <div class="sonification-controls">
+                <span id="sound-indicator" class="sound-indicator" title="Sonificación acústica">🔊 Sonido Activo</span>
+                <button id="btn-replay" class="btn-replay-small" title="Repetir animación">↻ Reiniciar</button>
+              </div>
+            </div>
+            <!-- Monitor en tiempo real de intensidad de emisiones y tono sonoro -->
+            <div id="sonification-monitor" class="sonification-monitor" style="display: none;">
+              <span class="sonification-label">Monitor Acústico de Emisiones:</span>
+              <span id="sonification-metrics" class="sonification-metrics">Cargando datos...</span>
             </div>
           </div>
         </div>
