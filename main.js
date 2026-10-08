@@ -135,11 +135,13 @@ async function loadEnergyData() {
 // ==========================================
 async function renderMap() {
   const container = document.getElementById('map-container');
-  const width = container.clientWidth || 450;
-  const height = container.clientHeight || 650;
+  container.innerHTML = ''; // Limpiar cualquier svg o elemento previo
+  const rect = container.getBoundingClientRect();
+  const width = Math.max(rect.width || container.clientWidth, 400);
+  const height = Math.max(rect.height || container.clientHeight, 500);
 
   // Escala balanceada para tamaño compacto
-  const initialScale = Math.min(width, height) * 0.44;
+  const initialScale = Math.min(width, height) * 0.42;
   const initialRotation = [75, -10, 0];
 
   const projection = d3.geoOrthographic()
@@ -152,6 +154,8 @@ async function renderMap() {
 
   const svg = d3.select('#map-container')
     .append('svg')
+    .attr('width', width)
+    .attr('height', height)
     .attr('viewBox', `0 0 ${width} ${height}`)
     .attr('preserveAspectRatio', 'xMidYMid meet');
 
@@ -243,7 +247,12 @@ async function renderMap() {
   });
 
   try {
-    const worldData = await d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json');
+    let worldData;
+    try {
+      worldData = await d3.json('countries-110m.json');
+    } catch (eLocal) {
+      worldData = await d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json');
+    }
     const countries = topojson.feature(worldData, worldData.objects.countries).features;
 
     countriesPaths = g.selectAll('path.country')
