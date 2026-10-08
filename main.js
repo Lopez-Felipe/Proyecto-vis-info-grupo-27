@@ -348,26 +348,19 @@ btnSelectOptions.addEventListener('click', () => {
 
 checkFossil.addEventListener('change', (e) => {
   showFossil = e.target.checked;
-  document.getElementById('legend-fossil').style.opacity = showFossil ? '1' : '0.3';
-  if (chartContainer.style.display === 'block') {
-    startChartRace();
-  }
+  const leg = document.getElementById('legend-fossil');
+  if (leg) leg.style.opacity = showFossil ? '1' : '0.3';
 });
 
 checkRenew.addEventListener('change', (e) => {
   showRenew = e.target.checked;
-  document.getElementById('legend-renew').style.opacity = showRenew ? '1' : '0.3';
-  if (chartContainer.style.display === 'block') {
-    startChartRace();
-  }
+  const leg = document.getElementById('legend-renew');
+  if (leg) leg.style.opacity = showRenew ? '1' : '0.3';
 });
 
 document.querySelectorAll('input[name="metric-type"]').forEach((radio) => {
   radio.addEventListener('change', (e) => {
     currentMetric = e.target.value;
-    if (chartContainer.style.display === 'block') {
-      startChartRace();
-    }
   });
 });
 
