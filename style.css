@@ -146,7 +146,7 @@ body {
   fill: var(--map-land-other);
   stroke: var(--map-stroke);
   stroke-width: 0.6px;
-  transition: fill 0.25s ease, stroke 0.25s ease;
+  /* IMPORTANTE: Sin 'transition' en los paths del mapa para que el giro del globo sea 100% instantáneo sin lag */
 }
 
 .country-eligible {
@@ -154,7 +154,6 @@ body {
   stroke: #38bdf8;
   stroke-width: 1.5px;
   cursor: pointer;
-  transition: all 0.25s ease;
 }
 
 .country-eligible:hover {

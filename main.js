@@ -477,6 +477,18 @@ async function renderMap() {
       })
       .attr('d', pathGenerator)
       .attr('data-name', (d) => normalizarNombre(d.properties.name))
+      .attr('fill', (d) => {
+        const countryName = normalizarNombre(d.properties.name);
+        return PAISES_PRINCIPALES.includes(countryName) ? '#1e3a5f' : '#1a2538';
+      })
+      .attr('stroke', (d) => {
+        const countryName = normalizarNombre(d.properties.name);
+        return PAISES_PRINCIPALES.includes(countryName) ? '#38bdf8' : '#0b111e';
+      })
+      .attr('stroke-width', (d) => {
+        const countryName = normalizarNombre(d.properties.name);
+        return PAISES_PRINCIPALES.includes(countryName) ? 1.5 : 0.6;
+      })
       .on('mouseover', function (event, d) {
         const countryName = normalizarNombre(d.properties.name);
         const isEligible = PAISES_PRINCIPALES.includes(countryName);
