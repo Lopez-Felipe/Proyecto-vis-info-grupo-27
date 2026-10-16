@@ -225,6 +225,7 @@ function startSonification() {
   initAudio();
   if (!audioCtx || !masterGain) return;
 
+  // Detenemos de forma síncrona cualquier instancia sonando previamente
   stopSonification();
   isAudioRunning = true;
 
@@ -252,7 +253,6 @@ function updateSonification(totalEmissions, renewShare, intensity) {
   if (!isAudioEnabled || !audioCtx) return;
 
   const renRatio = Math.max(0, Math.min(1, renewShare / 100));
-  // Rango de tono continuo: de 110 Hz (grave fósil) a 820 Hz (agudo renovable)
   targetFreq = Math.round(110 + Math.pow(renRatio, 1.15) * 710);
   targetEmissions = Math.max(0, totalEmissions);
 
@@ -274,24 +274,16 @@ function stopSonification() {
   }
   if (baseCarrierOsc) {
     try {
-      const now = audioCtx ? audioCtx.currentTime : 0;
-      if (carrierGain && audioCtx) {
-        carrierGain.gain.setTargetAtTime(0.001, now, 0.04);
-      }
-      setTimeout(() => {
-        try {
-          if (baseCarrierOsc) {
-            baseCarrierOsc.stop();
-            baseCarrierOsc.disconnect();
-          }
-        } catch (e) {}
-        baseCarrierOsc = null;
-        carrierGain = null;
-      }, 50);
-    } catch (e) {
-      baseCarrierOsc = null;
-      carrierGain = null;
-    }
+      baseCarrierOsc.stop();
+      baseCarrierOsc.disconnect();
+    } catch (e) {}
+    baseCarrierOsc = null;
+  }
+  if (carrierGain) {
+    try {
+      carrierGain.disconnect();
+    } catch (e) {}
+    carrierGain = null;
   }
 }
 
@@ -508,20 +500,27 @@ async function renderMap() {
       })
       .attr('d', pathGenerator)
       .attr('data-name', (d) => normalizarNombre(d.properties.name))
-      .style('fill', (d) => {
-        const countryName = normalizarNombre(d.properties.name);
-        const iso = ISO_BANDERAS[countryName];
-        return iso ? `url(#flag-${iso})` : null;
-      })
       .on('mouseover', function (event, d) {
         const countryName = normalizarNombre(d.properties.name);
         const isEligible = PAISES_PRINCIPALES.includes(countryName);
         const label = NOMBRES_ESP[countryName] || countryName;
+        const iso = ISO_BANDERAS[countryName];
+        const flagSrc = (typeof FLAGS_BASE64 !== 'undefined' && FLAGS_BASE64[iso]) ? FLAGS_BASE64[iso] : `flags/${iso}.png`;
         
         tooltip.style.display = 'block';
-        tooltip.innerHTML = isEligible 
-          ? `<strong>${label}</strong> <br><small style="color:#06b6d4;">✓ Participante (Clic para seleccionar)</small>`
-          : `<span>${label}</span>`;
+        if (isEligible) {
+          tooltip.innerHTML = `
+            <div class="tooltip-content-with-flag">
+              <img src="${flagSrc}" class="tooltip-flag-img" alt="${label}" />
+              <div class="tooltip-text-group">
+                <span class="tooltip-country-name">${label}</span>
+                <span class="tooltip-participant-badge">✓ Participante (Clic para explorar)</span>
+              </div>
+            </div>
+          `;
+        } else {
+          tooltip.innerHTML = `<span>${label}</span>`;
+        }
       })
       .on('mousemove', function (event) {
         tooltip.style.left = `${event.pageX}px`;
