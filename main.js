@@ -146,7 +146,7 @@ function initAudio() {
     if (AudioContext) {
       audioCtx = new AudioContext();
       masterGain = audioCtx.createGain();
-      masterGain.gain.setValueAtTime(0.35, audioCtx.currentTime); // Volumen general bien audible
+      masterGain.gain.setValueAtTime(0.85, audioCtx.currentTime); // Volumen alto y nítido para notebooks
       masterGain.connect(audioCtx.destination);
     }
   }
@@ -167,24 +167,24 @@ function playWoodpeckerTap(freq) {
 
   filter.type = 'bandpass';
   filter.frequency.setValueAtTime(freq, now);
-  filter.Q.setValueAtTime(3.5, now);
+  filter.Q.setValueAtTime(2.8, now);
 
   // Tono picoteo: transición descendente rápida típica del golpe de carpintero
   osc.type = freq > 450 ? 'sine' : 'triangle';
   osc.frequency.setValueAtTime(freq * 1.6, now);
   osc.frequency.exponentialRampToValueAtTime(Math.max(50, freq * 0.7), now + 0.05);
 
-  // Envolvente de volumen percusivo con pegada clara
-  gain.gain.setValueAtTime(0.001, now);
-  gain.gain.linearRampToValueAtTime(0.42, now + 0.003); // Golpe potente
-  gain.gain.exponentialRampToValueAtTime(0.001, now + 0.055);
+  // Envolvente de volumen percusivo con pegada clara y potente
+  gain.gain.setValueAtTime(0.01, now);
+  gain.gain.linearRampToValueAtTime(0.80, now + 0.003); // Golpe potente para que suene fuerte en notebooks
+  gain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
 
   osc.connect(filter);
   filter.connect(gain);
   gain.connect(masterGain);
 
   osc.start(now);
-  osc.stop(now + 0.06);
+  osc.stop(now + 0.065);
 }
 
 // Sonido constante para emisiones bajas
@@ -199,8 +199,8 @@ function startContinuousTone(freq) {
     continuousOsc.type = 'sine';
     continuousOsc.frequency.setValueAtTime(freq, now);
 
-    continuousGain.gain.setValueAtTime(0.001, now);
-    continuousGain.gain.linearRampToValueAtTime(0.24, now + 0.08); // Volumen constante agradable y nítido
+    continuousGain.gain.setValueAtTime(0.01, now);
+    continuousGain.gain.linearRampToValueAtTime(0.55, now + 0.08); // Volumen constante alto y claro para notebooks
 
     continuousOsc.connect(continuousGain);
     continuousGain.connect(masterGain);
@@ -397,6 +397,7 @@ async function renderMap() {
   globeGradient.append('stop').attr('offset', '100%').attr('stop-color', '#050a14');
 
   // Patrones SVG de Banderas para los 19 países participantes
+  // Usamos patternUnits='objectBoundingBox' para que la bandera llene proporcionalmente cada polígono nacional
   Object.keys(ISO_BANDERAS).forEach((cName) => {
     const iso = ISO_BANDERAS[cName];
     const flagSrc = (typeof FLAGS_BASE64 !== 'undefined' && FLAGS_BASE64[iso]) 
@@ -409,14 +410,14 @@ async function renderMap() {
       .attr('width', 1)
       .attr('height', 1)
       .attr('viewBox', '0 0 160 106')
-      .attr('preserveAspectRatio', 'xMidYMid slice');
+      .attr('preserveAspectRatio', 'none');
 
     pat.append('image')
       .attr('href', flagSrc)
       .attr('xlink:href', flagSrc)
       .attr('width', 160)
       .attr('height', 106)
-      .attr('preserveAspectRatio', 'xMidYMid slice');
+      .attr('preserveAspectRatio', 'none');
   });
 
   const sphereCircle = svg.append('circle')
