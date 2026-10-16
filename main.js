@@ -68,6 +68,38 @@ const ISO_BANDERAS = {
   'Venezuela': 've'
 };
 
+// Zonas Geográficas de las Américas y su paleta cromática distinguible
+const ZONAS_GEOGRAFICAS = {
+  // América del Norte (Azul zafiro / celeste nórdico)
+  'Canada': { zona: 'Norteamérica', color: '#38bdf8', border: '#7dd3fc' },
+  'United States': { zona: 'Norteamérica', color: '#0284c7', border: '#38bdf8' },
+  'Mexico': { zona: 'Norteamérica', color: '#0369a1', border: '#0ea5e9' },
+
+  // Centroamérica y Caribe (Ámbar / Esmeralda cálido)
+  'Guatemala': { zona: 'Centroamérica y Caribe', color: '#f59e0b', border: '#fcd34d' },
+  'Honduras': { zona: 'Centroamérica y Caribe', color: '#d97706', border: '#fbbf24' },
+  'Nicaragua': { zona: 'Centroamérica y Caribe', color: '#b45309', border: '#f59e0b' },
+  'Costa Rica': { zona: 'Centroamérica y Caribe', color: '#10b981', border: '#6ee7b7' },
+  'Panama': { zona: 'Centroamérica y Caribe', color: '#059669', border: '#34d399' },
+  'Cuba': { zona: 'Centroamérica y Caribe', color: '#f97316', border: '#fdba74' },
+
+  // Región Andina (Púrpura / Amatista / Violeta)
+  'Colombia': { zona: 'Región Andina', color: '#8b5cf6', border: '#c4b5fd' },
+  'Venezuela': { zona: 'Región Andina', color: '#7c3aed', border: '#a78bfa' },
+  'Ecuador': { zona: 'Región Andina', color: '#6d28d9', border: '#8b5cf6' },
+  'Peru': { zona: 'Región Andina', color: '#9333ea', border: '#d8b4fe' },
+  'Bolivia': { zona: 'Región Andina', color: '#a855f7', border: '#e9d5ff' },
+
+  // Brasil (Gigante Sudamericano - Verde tropical característico)
+  'Brazil': { zona: 'Brasil', color: '#16a34a', border: '#4ade80' },
+
+  // Cono Sur (Coral / Rubí / Rojo rosáceo)
+  'Chile': { zona: 'Cono Sur', color: '#e11d48', border: '#fb7185' },
+  'Argentina': { zona: 'Cono Sur', color: '#be123c', border: '#f43f5e' },
+  'Paraguay': { zona: 'Cono Sur', color: '#ec4899', border: '#f472b6' },
+  'Uruguay': { zona: 'Cono Sur', color: '#db2777', border: '#f9a8d4' }
+};
+
 // Paleta cromática semántica para fuentes individuales (Normativa del curso)
 const FUENTES_CONFIG = {
   'Renewables': { label: 'Renovables (Total)', color: '#10b981', type: 'macro' },
@@ -479,21 +511,24 @@ async function renderMap() {
       .attr('data-name', (d) => normalizarNombre(d.properties.name))
       .attr('fill', (d) => {
         const countryName = normalizarNombre(d.properties.name);
-        return PAISES_PRINCIPALES.includes(countryName) ? '#1e3a5f' : '#1a2538';
+        const zonaInfo = ZONAS_GEOGRAFICAS[countryName];
+        return zonaInfo ? zonaInfo.color : '#1a2538';
       })
       .attr('stroke', (d) => {
         const countryName = normalizarNombre(d.properties.name);
-        return PAISES_PRINCIPALES.includes(countryName) ? '#38bdf8' : '#0b111e';
+        const zonaInfo = ZONAS_GEOGRAFICAS[countryName];
+        return zonaInfo ? zonaInfo.border : '#0b111e';
       })
       .attr('stroke-width', (d) => {
         const countryName = normalizarNombre(d.properties.name);
-        return PAISES_PRINCIPALES.includes(countryName) ? 1.5 : 0.6;
+        return PAISES_PRINCIPALES.includes(countryName) ? 1.6 : 0.6;
       })
       .on('mouseover', function (event, d) {
         const countryName = normalizarNombre(d.properties.name);
         const isEligible = PAISES_PRINCIPALES.includes(countryName);
         const label = NOMBRES_ESP[countryName] || countryName;
         const iso = ISO_BANDERAS[countryName];
+        const zonaInfo = ZONAS_GEOGRAFICAS[countryName];
         const flagSrc = (typeof FLAGS_BASE64 !== 'undefined' && FLAGS_BASE64[iso]) ? FLAGS_BASE64[iso] : `flags/${iso}.png`;
         
         tooltip.style.display = 'block';
@@ -503,7 +538,8 @@ async function renderMap() {
               <img src="${flagSrc}" class="tooltip-flag-img" alt="${label}" />
               <div class="tooltip-text-group">
                 <span class="tooltip-country-name">${label}</span>
-                <span class="tooltip-participant-badge">✓ Participante (Clic para explorar)</span>
+                <span class="tooltip-zone-badge" style="color:${zonaInfo ? zonaInfo.border : '#38bdf8'}">📍 ${zonaInfo ? zonaInfo.zona : 'América'}</span>
+                <span class="tooltip-participant-badge">✓ Clic para ver carrera</span>
               </div>
             </div>
           `;
