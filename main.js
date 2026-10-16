@@ -385,29 +385,6 @@ async function renderMap() {
   globeGradient.append('stop').attr('offset', '70%').attr('stop-color', '#091122');
   globeGradient.append('stop').attr('offset', '100%').attr('stop-color', '#050a14');
 
-  // Patrones SVG de Banderas Vectoriales para los 19 países participantes
-  Object.keys(ISO_BANDERAS).forEach((cName) => {
-    const iso = ISO_BANDERAS[cName];
-    const flagSrc = (typeof FLAGS_BASE64 !== 'undefined' && FLAGS_BASE64[iso]) 
-      ? FLAGS_BASE64[iso] 
-      : `flags/${iso}.png`;
-
-    const pat = defs.append('pattern')
-      .attr('id', `flag-${iso}`)
-      .attr('patternUnits', 'objectBoundingBox')
-      .attr('width', 1)
-      .attr('height', 1)
-      .attr('viewBox', '0 0 100 100')
-      .attr('preserveAspectRatio', 'xMidYMid slice');
-
-    pat.append('image')
-      .attr('href', flagSrc)
-      .attr('xlink:href', flagSrc)
-      .attr('width', 100)
-      .attr('height', 100)
-      .attr('preserveAspectRatio', 'xMidYMid slice');
-  });
-
   const sphereCircle = svg.append('circle')
     .attr('cx', width / 2)
     .attr('cy', height / 2)
