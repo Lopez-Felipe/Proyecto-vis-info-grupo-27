@@ -174,8 +174,6 @@ body {
 
 /* Estilos de los países en el Globo */
 .country {
-  fill: var(--map-land-other);
-  stroke: var(--map-stroke);
   stroke-width: 0.6px;
   /* IMPORTANTE: Sin 'transition' en los paths del mapa para que el giro del globo sea 100% instantáneo sin lag */
 }

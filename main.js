@@ -509,19 +509,19 @@ async function renderMap() {
       })
       .attr('d', pathGenerator)
       .attr('data-name', (d) => normalizarNombre(d.properties.name))
-      .attr('fill', (d) => {
+      .style('fill', (d) => {
         const countryName = normalizarNombre(d.properties.name);
         const zonaInfo = ZONAS_GEOGRAFICAS[countryName];
         return zonaInfo ? zonaInfo.color : '#1a2538';
       })
-      .attr('stroke', (d) => {
+      .style('stroke', (d) => {
         const countryName = normalizarNombre(d.properties.name);
         const zonaInfo = ZONAS_GEOGRAFICAS[countryName];
         return zonaInfo ? zonaInfo.border : '#0b111e';
       })
-      .attr('stroke-width', (d) => {
+      .style('stroke-width', (d) => {
         const countryName = normalizarNombre(d.properties.name);
-        return PAISES_PRINCIPALES.includes(countryName) ? 1.6 : 0.6;
+        return PAISES_PRINCIPALES.includes(countryName) ? '1.6px' : '0.6px';
       })
       .on('mouseover', function (event, d) {
         const countryName = normalizarNombre(d.properties.name);
