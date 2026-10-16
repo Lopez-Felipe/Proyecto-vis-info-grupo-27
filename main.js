@@ -124,20 +124,30 @@ let currentMetric = 'gen'; // 'gen' (TWh) o 'share' (%)
 let isAudioEnabled = true;
 
 // Web Audio API para Sonificación Acústica
-// Mapeo solicitado:
-// 1. Ritmo / Picoteo (golpeteo como pájaro carpintero): mayor ritmo (taps más rápidos y constantes) = mayor volumen de emisiones (MtCO2e).
-// 2. Tono / Frecuencia del picoteo: grave = mayor fósil; agudo = mayor renovable.
+// 1. Emisiones Bajas (ej. < 15 MtCO2e o fase limpia): Sonido constante / armónico sostenido sin picoteo intermitente.
+// 2. Emisiones Altas: Golpeteo percusivo de pájaro carpintero; a mayores emisiones, mayor velocidad y ritmo continuo.
+// 3. Tono / Frecuencia marcadamente diferenciada:
+//    - Grave muy profundo (fósiles/carbón/gas): 90 Hz
+//    - Agudo muy brillante y nítido (renovable/limpio): 920 Hz
+// 4. Volumen incrementado y balanceado para buena presencia sonora.
 let audioCtx = null;
 let woodPeckerTimer = null;
+let continuousOsc = null;
+let continuousGain = null;
+let masterGain = null;
 let currentAudioFreq = 300;
-let currentTapInterval = 300; // ms
-let isTapping = false;
+let currentTapInterval = 250; // ms
+let isContinuousMode = false;
+let isAudioRunning = false;
 
 function initAudio() {
   if (!audioCtx) {
     const AudioContext = window.AudioContext || window.webkitAudioContext;
     if (AudioContext) {
       audioCtx = new AudioContext();
+      masterGain = audioCtx.createGain();
+      masterGain.gain.setValueAtTime(0.35, audioCtx.currentTime); // Volumen general bien audible
+      masterGain.connect(audioCtx.destination);
     }
   }
   if (audioCtx && audioCtx.state === 'suspended') {
@@ -145,86 +155,147 @@ function initAudio() {
   }
 }
 
-// Reproducir un 'tap' o 'picotazo' percusivo característico
+// Reproducir un 'tap' o 'picotazo' percusivo estilo pájaro carpintero con volumen potente
 function playWoodpeckerTap(freq) {
-  if (!audioCtx || !isAudioEnabled) return;
+  if (!audioCtx || !isAudioEnabled || !masterGain) return;
   
   const now = audioCtx.currentTime;
   
-  // Oscilador para cuerpo del picotazo
   const osc = audioCtx.createOscillator();
   const gain = audioCtx.createGain();
-  
-  // Filtro pasa banda para darle resonancia a madera hueca
   const filter = audioCtx.createBiquadFilter();
+
   filter.type = 'bandpass';
   filter.frequency.setValueAtTime(freq, now);
-  filter.Q.setValueAtTime(4.0, now);
+  filter.Q.setValueAtTime(3.5, now);
 
-  // Tono con rápido decaimiento de frecuencia (ataque de pájaro carpintero)
-  osc.type = 'triangle';
-  osc.frequency.setValueAtTime(freq * 1.5, now);
-  osc.frequency.exponentialRampToValueAtTime(Math.max(60, freq * 0.7), now + 0.045);
+  // Tono picoteo: transición descendente rápida típica del golpe de carpintero
+  osc.type = freq > 450 ? 'sine' : 'triangle';
+  osc.frequency.setValueAtTime(freq * 1.6, now);
+  osc.frequency.exponentialRampToValueAtTime(Math.max(50, freq * 0.7), now + 0.05);
 
-  // Envolvente de amplitud muy percusiva (ataque inmediato ~2ms, decaimiento rápido ~40ms)
-  gain.gain.setValueAtTime(0.0001, now);
-  gain.gain.linearRampToValueAtTime(0.18, now + 0.003);
-  gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.05);
+  // Envolvente de volumen percusivo con pegada clara
+  gain.gain.setValueAtTime(0.001, now);
+  gain.gain.linearRampToValueAtTime(0.42, now + 0.003); // Golpe potente
+  gain.gain.exponentialRampToValueAtTime(0.001, now + 0.055);
 
   osc.connect(filter);
   filter.connect(gain);
-  gain.connect(audioCtx.destination);
+  gain.connect(masterGain);
 
   osc.start(now);
-  osc.stop(now + 0.055);
+  osc.stop(now + 0.06);
 }
 
-// Bucle dinámico que programa el siguiente picotazo según el intervalo actual
+// Sonido constante para emisiones bajas
+function startContinuousTone(freq) {
+  if (!audioCtx || !isAudioEnabled || !masterGain) return;
+  const now = audioCtx.currentTime;
+
+  if (!continuousOsc) {
+    continuousOsc = audioCtx.createOscillator();
+    continuousGain = audioCtx.createGain();
+
+    continuousOsc.type = 'sine';
+    continuousOsc.frequency.setValueAtTime(freq, now);
+
+    continuousGain.gain.setValueAtTime(0.001, now);
+    continuousGain.gain.linearRampToValueAtTime(0.24, now + 0.08); // Volumen constante agradable y nítido
+
+    continuousOsc.connect(continuousGain);
+    continuousGain.connect(masterGain);
+    continuousOsc.start();
+  } else {
+    continuousOsc.frequency.setTargetAtTime(freq, now, 0.05);
+  }
+}
+
+function stopContinuousTone() {
+  if (continuousOsc) {
+    try {
+      const now = audioCtx ? audioCtx.currentTime : 0;
+      if (continuousGain && audioCtx) {
+        continuousGain.gain.setTargetAtTime(0.001, now, 0.03);
+      }
+      setTimeout(() => {
+        try {
+          if (continuousOsc) {
+            continuousOsc.stop();
+            continuousOsc.disconnect();
+          }
+        } catch (e) {}
+        continuousOsc = null;
+        continuousGain = null;
+      }, 50);
+    } catch (e) {
+      continuousOsc = null;
+      continuousGain = null;
+    }
+  }
+}
+
+// Bucle dinámico que programa el siguiente picotazo para emisiones medias y altas
 function scheduleNextTap() {
-  if (!isTapping || !isAudioEnabled) return;
-  playWoodpeckerTap(currentAudioFreq);
+  if (!isAudioRunning || !isAudioEnabled) return;
+  if (!isContinuousMode) {
+    playWoodpeckerTap(currentAudioFreq);
+  }
   woodPeckerTimer = setTimeout(() => {
     scheduleNextTap();
-  }, currentTapInterval);
+  }, Math.max(50, currentTapInterval));
 }
 
-// Iniciar sintetizador de sonificación (ritmo picoteo)
+// Iniciar sintetizador de sonificación
 function startSonification() {
   if (!isAudioEnabled) return;
   initAudio();
   if (!audioCtx) return;
 
   stopSonification();
-  isTapping = true;
+  isAudioRunning = true;
   scheduleNextTap();
 }
 
 // Actualizar parámetros sonoros:
-// totalEmissions -> modula el ritmo (intervalo ms)
-// renewShare -> modula el tono (grave fósil <-> agudo renovable)
+// totalEmissions -> define si es sonido constante (< 18 MtCO2e) o picoteo ritmico
+// renewShare -> modula el tono (muy grave 90Hz fósil <-> muy agudo 920Hz renovable)
 function updateSonification(totalEmissions, renewShare, intensity) {
   if (!isAudioEnabled || !audioCtx) return;
 
-  // 1. Tono / Frecuencia:
-  // Grave (fósil ~130 Hz) <-> Agudo (renovable ~650 Hz)
+  // 1. Tono / Frecuencia con fuerte contraste:
+  // Fósil 100% -> 90 Hz (grave retumbante)
+  // Renovable 100% -> 920 Hz (agudo claro y limpio)
   const renRatio = Math.max(0, Math.min(1, renewShare / 100));
-  currentAudioFreq = 130 + renRatio * 520;
+  currentAudioFreq = Math.round(90 + Math.pow(renRatio, 1.2) * 830);
 
-  // 2. Ritmo / Picoteo (Frecuencia de golpeteo):
-  // Mayor emisión = ritmo más rápido (intervalo pequeño ~70ms como pájaro carpintero frenético)
-  // Menor emisión = ritmo espaciado y calmo (~550ms)
-  // Rango típico de total_emissions: 0.5 a 2600 MtCO2e (EE.UU. ~2500, países pequeños ~2-15)
-  // Usamos escala con raíz cuadrada para balancear países gigantes y pequeños
-  const normEm = Math.min(1, Math.sqrt(Math.max(0, totalEmissions)) / 50); // sqrt(2500) = 50 -> 1.0
-  currentTapInterval = Math.round(550 - normEm * 470); // Rango de 550ms a 80ms
+  // 2. Comportamiento según emisiones:
+  // Umbral de bajas emisiones (países pequeños o con matriz descarbonizada, < 20 MtCO2e)
+  // -> Sonido constante continuo
+  // Si supera 20 MtCO2e -> Ritmo de pájaro carpintero progresivo (de 380ms hasta 60ms)
+  const LOW_EMISSION_THRESHOLD = 20;
+
+  if (totalEmissions <= LOW_EMISSION_THRESHOLD) {
+    isContinuousMode = true;
+    startContinuousTone(currentAudioFreq);
+  } else {
+    isContinuousMode = false;
+    stopContinuousTone();
+
+    // Ritmo acelerado: más emisiones = picoteo más rápido y continuo
+    const maxEm = 2500;
+    const progressEm = Math.min(1, Math.max(0, (totalEmissions - LOW_EMISSION_THRESHOLD) / maxEm));
+    // Escala cuadrática para percibir aceleración de forma contundente
+    currentTapInterval = Math.round(380 - Math.sqrt(progressEm) * 315); // Rango de 380ms a ~65ms
+  }
 }
 
 function stopSonification() {
-  isTapping = false;
+  isAudioRunning = false;
   if (woodPeckerTimer) {
     clearTimeout(woodPeckerTimer);
     woodPeckerTimer = null;
   }
+  stopContinuousTone();
 }
 
 // Elementos del DOM
@@ -328,16 +399,23 @@ async function renderMap() {
   // Patrones SVG de Banderas para los 19 países participantes
   Object.keys(ISO_BANDERAS).forEach((cName) => {
     const iso = ISO_BANDERAS[cName];
+    const flagSrc = (typeof FLAGS_BASE64 !== 'undefined' && FLAGS_BASE64[iso]) 
+      ? FLAGS_BASE64[iso] 
+      : `flags/${iso}.png`;
+
     const pat = defs.append('pattern')
       .attr('id', `flag-${iso}`)
       .attr('patternUnits', 'objectBoundingBox')
-      .attr('width', '1')
-      .attr('height', '1');
+      .attr('width', 1)
+      .attr('height', 1)
+      .attr('viewBox', '0 0 160 106')
+      .attr('preserveAspectRatio', 'xMidYMid slice');
 
     pat.append('image')
-      .attr('href', `flags/${iso}.png`)
-      .attr('width', '100%')
-      .attr('height', '100%')
+      .attr('href', flagSrc)
+      .attr('xlink:href', flagSrc)
+      .attr('width', 160)
+      .attr('height', 106)
       .attr('preserveAspectRatio', 'xMidYMid slice');
   });
 
@@ -433,7 +511,7 @@ async function renderMap() {
       })
       .attr('d', pathGenerator)
       .attr('data-name', (d) => normalizarNombre(d.properties.name))
-      .attr('fill', (d) => {
+      .style('fill', (d) => {
         const countryName = normalizarNombre(d.properties.name);
         const iso = ISO_BANDERAS[countryName];
         return iso ? `url(#flag-${iso})` : null;
@@ -515,15 +593,12 @@ function selectCountry(countryName, element) {
   viewCountrySelected.classList.add('active');
   actionFeedback.style.display = 'none';
 
-  // Iniciar la carrera automáticamente al seleccionar el país con retraso de 1.5 segundos
+  // Iniciar la carrera altiro / inmediatamente al seleccionar el país
   if (window.autoStartTimeout) {
     clearTimeout(window.autoStartTimeout);
+    window.autoStartTimeout = null;
   }
-  window.autoStartTimeout = setTimeout(() => {
-    if (selectedCountry === countryName) {
-      startChartRace();
-    }
-  }, 1500);
+  startChartRace();
 }
 
 // Botón: Volver a la breve explicación
