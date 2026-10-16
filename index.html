@@ -111,129 +111,140 @@
 
       <!-- Vista 2: Vista al seleccionar un país con los 3 botones y el gráfico -->
       <div id="view-country-selected" class="panel-view">
-        <!-- Leyenda permanente fuera del gráfico para identificar fuentes -->
-        <div class="permanent-legend-bar">
-          <span class="legend-bar-title">Clasificación de Fuentes Energéticas</span>
-          <div class="legend-categories">
-            <div class="legend-group-box legend-box-renew">
-              <span class="legend-dot-indicator" style="background:#10b981;"></span>
-              <span class="legend-group-text">🌱 Renovables (Solar, Eólica, Hidro, Bioenergía)</span>
+        <!-- Barra de Controles Superior Rediseñada (Foto 1) -->
+        <div class="country-action-bar">
+          <!-- Clasificación de Fuentes Energéticas (Izquierda) -->
+          <div class="permanent-legend-bar">
+            <span class="legend-bar-title">Clasificación de fuentes energéticas</span>
+            <div class="legend-categories">
+              <div class="legend-group-box legend-box-renew">
+                <span class="legend-dot-indicator" style="background:#10b981;"></span>
+                <span class="legend-group-text">🌱 Renovables (Solar, Eólica, Hidro, Bioenergía)</span>
+              </div>
+              <div class="legend-group-box legend-box-fossil">
+                <span class="legend-dot-indicator" style="background:#ef4444;"></span>
+                <span class="legend-group-text">🔥 Fósiles (Carbón, Gas Natural, Petróleo)</span>
+              </div>
             </div>
-            <div class="legend-group-box legend-box-fossil">
-              <span class="legend-dot-indicator" style="background:#ef4444;"></span>
-              <span class="legend-group-text">🔥 Fósiles (Carbón, Gas Natural, Petróleo)</span>
+          </div>
+
+          <!-- Botones de Acción (Derecha / Apilados) -->
+          <div class="control-buttons-stack">
+            <div class="buttons-top-row">
+              <button id="btn-start" class="btn btn-primary btn-start-prominent">
+                <span class="btn-icon">▶</span>
+                <span class="btn-label">Comenzar</span>
+              </button>
+              <button id="btn-back-to-intro" class="btn btn-tertiary">
+                <span class="btn-icon">←</span>
+                <span class="btn-label">Volver a la breve explicación</span>
+              </button>
+            </div>
+            <div class="buttons-bottom-row">
+              <button id="btn-select-options" class="btn btn-secondary">
+                <span class="btn-icon">⚙️</span>
+                <span class="btn-label">Seleccionar opciones</span>
+              </button>
             </div>
           </div>
         </div>
 
-        <div class="actions-group">
-          <!-- Botón 1: Seleccionar opciones -->
-          <button id="btn-select-options" class="btn btn-secondary">
-            <span class="btn-icon">⚙️</span>
-            <span class="btn-label">Seleccionar opciones</span>
-          </button>
+        <!-- Menú desplegable de opciones de fuentes Rediseñado en 2 Columnas (Foto 2) -->
+        <div id="options-panel" class="options-panel" style="display: none;">
+          <!-- Opción unificada: Renovables vs Fósiles -->
+          <div class="options-section">
+            <span class="options-title">VISUALIZACIÓN MACRO:</span>
+            <label class="custom-checkbox-macro">
+              <input type="checkbox" id="check-macro-unified" checked>
+              <span class="macro-box"></span>
+              <span class="macro-label-unified">
+                <span class="tag-renovables">🌱 Renovables</span>
+                <span class="vs-badge">vs</span>
+                <span class="tag-fosiles">🔥 Fósiles</span>
+              </span>
+            </label>
+          </div>
 
-          <!-- Menú desplegable de opciones de fuentes -->
-          <div id="options-panel" class="options-panel" style="display: none;">
-            <!-- Opción unificada: Renovables vs Fósiles -->
-            <div class="options-section">
-              <span class="options-title">Visualización Macro:</span>
-              <label class="custom-checkbox-macro">
-                <input type="checkbox" id="check-macro-unified" checked>
-                <span class="macro-box"></span>
-                <span class="macro-label-unified">
+          <!-- Desglose en 2 columnas: Renovables a la izquierda, Fósiles a la derecha -->
+          <div class="options-section">
+            <span class="options-title">DESGLOSE DE FUENTES ESPECÍFICAS:</span>
+            <div class="sources-columns-container">
+              <!-- Columna Izquierda: Renovables -->
+              <div class="source-column source-column-ren">
+                <div class="column-badge-header">
                   <span class="tag-renovables">🌱 Renovables</span>
-                  <span class="vs-badge">vs</span>
-                  <span class="tag-fosiles">🔥 Fósiles</span>
-                </span>
-              </label>
-            </div>
-
-            <!-- Energías por sí solas con colores únicos del curso -->
-            <div class="options-section">
-              <span class="options-title">Desglose de Fuentes Específicas:</span>
-              <div class="individual-sources-grid">
-                <!-- Renovables individuales -->
-                <label class="source-item">
-                  <input type="checkbox" class="source-checkbox" data-source="Solar">
-                  <span class="source-dot" style="background-color: #f59e0b;"></span>
-                  <span class="source-name">Solar</span>
-                  <span class="source-group-tag tag-sub-ren">Ren.</span>
-                </label>
-
-                <label class="source-item">
-                  <input type="checkbox" class="source-checkbox" data-source="Wind">
-                  <span class="source-dot" style="background-color: #06b6d4;"></span>
-                  <span class="source-name">Eólica</span>
-                  <span class="source-group-tag tag-sub-ren">Ren.</span>
-                </label>
-
-                <label class="source-item">
-                  <input type="checkbox" class="source-checkbox" data-source="Hydro">
-                  <span class="source-dot" style="background-color: #3b82f6;"></span>
-                  <span class="source-name">Hidroeléctrica</span>
-                  <span class="source-group-tag tag-sub-ren">Ren.</span>
-                </label>
-
-                <label class="source-item">
-                  <input type="checkbox" class="source-checkbox" data-source="Bioenergy">
-                  <span class="source-dot" style="background-color: #84cc16;"></span>
-                  <span class="source-name">Bioenergía</span>
-                  <span class="source-group-tag tag-sub-ren">Ren.</span>
-                </label>
-
-                <label class="source-item">
-                  <input type="checkbox" class="source-checkbox" data-source="Other renewables">
-                  <span class="source-dot" style="background-color: #10b981;"></span>
-                  <span class="source-name">Otras Renovables</span>
-                  <span class="source-group-tag tag-sub-ren">Ren.</span>
-                </label>
-
-                <!-- Fósiles individuales -->
-                <label class="source-item">
-                  <input type="checkbox" class="source-checkbox" data-source="Coal">
-                  <span class="source-dot" style="background-color: #64748b;"></span>
-                  <span class="source-name">Carbón</span>
-                  <span class="source-group-tag tag-sub-fos">Fósil</span>
-                </label>
-
-                <label class="source-item">
-                  <input type="checkbox" class="source-checkbox" data-source="Gas">
-                  <span class="source-dot" style="background-color: #f97316;"></span>
-                  <span class="source-name">Gas Natural</span>
-                  <span class="source-group-tag tag-sub-fos">Fósil</span>
-                </label>
-
-                <label class="source-item">
-                  <input type="checkbox" class="source-checkbox" data-source="Other fossil">
-                  <span class="source-dot" style="background-color: #e11d48;"></span>
-                  <span class="source-name">Otros Fósiles</span>
-                  <span class="source-group-tag tag-sub-fos">Fósil</span>
-                </label>
+                </div>
+                <div class="source-column-list">
+                  <label class="source-item">
+                    <input type="checkbox" class="source-checkbox" data-source="Solar">
+                    <span class="source-dot" style="background-color: #f59e0b;"></span>
+                    <span class="source-name">Solar</span>
+                    <span class="source-group-tag tag-sub-ren">Ren.</span>
+                  </label>
+                  <label class="source-item">
+                    <input type="checkbox" class="source-checkbox" data-source="Hydro">
+                    <span class="source-dot" style="background-color: #3b82f6;"></span>
+                    <span class="source-name">Hidroeléctrica</span>
+                    <span class="source-group-tag tag-sub-ren">Ren.</span>
+                  </label>
+                  <label class="source-item">
+                    <input type="checkbox" class="source-checkbox" data-source="Other renewables">
+                    <span class="source-dot" style="background-color: #10b981;"></span>
+                    <span class="source-name">Otras Renovables</span>
+                    <span class="source-group-tag tag-sub-ren">Ren.</span>
+                  </label>
+                  <label class="source-item">
+                    <input type="checkbox" class="source-checkbox" data-source="Wind">
+                    <span class="source-dot" style="background-color: #06b6d4;"></span>
+                    <span class="source-name">Eólica</span>
+                    <span class="source-group-tag tag-sub-ren">Ren.</span>
+                  </label>
+                  <label class="source-item">
+                    <input type="checkbox" class="source-checkbox" data-source="Bioenergy">
+                    <span class="source-dot" style="background-color: #84cc16;"></span>
+                    <span class="source-name">Bioenergía</span>
+                    <span class="source-group-tag tag-sub-ren">Ren.</span>
+                  </label>
+                </div>
               </div>
-            </div>
 
-            <!-- Métrica del eje temporal -->
-            <div class="options-section">
-              <span class="options-title">Métrica del eje temporal:</span>
-              <div class="metric-radios">
-                <label><input type="radio" name="metric-type" value="gen" checked> Generación (TWh)</label>
-                <label><input type="radio" name="metric-type" value="share"> Participación (%)</label>
+              <!-- Columna Derecha: Fósiles -->
+              <div class="source-column source-column-fos">
+                <div class="column-badge-header">
+                  <span class="tag-fosiles">🔥 Fósiles</span>
+                </div>
+                <div class="source-column-list">
+                  <label class="source-item">
+                    <input type="checkbox" class="source-checkbox" data-source="Gas">
+                    <span class="source-dot" style="background-color: #f97316;"></span>
+                    <span class="source-name">Gas Natural</span>
+                    <span class="source-group-tag tag-sub-fos">Fósil</span>
+                  </label>
+                  <label class="source-item">
+                    <input type="checkbox" class="source-checkbox" data-source="Coal">
+                    <span class="source-dot" style="background-color: #64748b;"></span>
+                    <span class="source-name">Carbón</span>
+                    <span class="source-group-tag tag-sub-fos">Fósil</span>
+                  </label>
+                  <label class="source-item">
+                    <input type="checkbox" class="source-checkbox" data-source="Other fossil">
+                    <span class="source-dot" style="background-color: #e11d48;"></span>
+                    <span class="source-name">Otros Fósiles</span>
+                    <span class="source-group-tag tag-sub-fos">Fósil</span>
+                  </label>
+                </div>
               </div>
             </div>
           </div>
 
-          <!-- Botón 2: Comenzar -->
-          <button id="btn-start" class="btn btn-primary">
-            <span class="btn-icon">▶</span>
-            <span class="btn-label">Comenzar</span>
-          </button>
-
-          <!-- Botón 3: Volver a la breve explicación -->
-          <button id="btn-back-to-intro" class="btn btn-tertiary">
-            <span class="btn-icon">←</span>
-            <span class="btn-label">Volver a la breve explicación</span>
-          </button>
+          <!-- Métrica del eje temporal -->
+          <div class="options-section">
+            <span class="options-title">MÉTRICA DEL EJE TEMPORAL:</span>
+            <div class="metric-radios">
+              <label><input type="radio" name="metric-type" value="gen" checked> Generación (TWh)</label>
+              <label><input type="radio" name="metric-type" value="share"> Participación (%)</label>
+            </div>
+          </div>
         </div>
 
         <!-- Contenedor del Gráfico Temporal que se revela fluidamente al presionar 'Comenzar' -->
@@ -267,6 +278,24 @@
                 <button id="btn-replay" class="btn-replay-small" title="Repetir animación">↻ Reiniciar</button>
               </div>
             </div>
+            <!-- Breve Explicación de la Sonificación -->
+            <div class="sonification-explanation-card">
+              <div class="sonif-explain-header">
+                <span class="sonif-icon">🎵</span>
+                <strong>¿Cómo funciona la Sonificación?</strong>
+              </div>
+              <div class="sonif-explain-rules">
+                <div class="sonif-rule">
+                  <span class="sonif-rule-tag tag-ritmo">Ritmo / Picoteo:</span>
+                  <span>Mayor ritmo (picoteo rápido constante) = Mayor volumen de gases de efecto invernadero (MtCO₂e). Menor emisión = Golpeteo espaciado y lento.</span>
+                </div>
+                <div class="sonif-rule">
+                  <span class="sonif-rule-tag tag-tono">Tono / Frecuencia:</span>
+                  <span><strong>Grave</strong> = Mayor dependencia de energías fósiles (carbón/gas). <strong>Agudo</strong> = Mayor matriz limpia y renovable.</span>
+                </div>
+              </div>
+            </div>
+
             <!-- Monitor en tiempo real de intensidad de emisiones y tono sonoro -->
             <div id="sonification-monitor" class="sonification-monitor" style="display: none;">
               <span class="sonification-label">Monitor Acústico de Emisiones:</span>

@@ -45,6 +45,29 @@ const NOMBRES_ESP = {
   'Venezuela': 'Venezuela'
 };
 
+// Códigos ISO de dos letras para cargar banderas
+const ISO_BANDERAS = {
+  'Argentina': 'ar',
+  'Bolivia': 'bo',
+  'Brazil': 'br',
+  'Canada': 'ca',
+  'Chile': 'cl',
+  'Colombia': 'co',
+  'Costa Rica': 'cr',
+  'Cuba': 'cu',
+  'Ecuador': 'ec',
+  'Guatemala': 'gt',
+  'Honduras': 'hn',
+  'Mexico': 'mx',
+  'Nicaragua': 'ni',
+  'Panama': 'pa',
+  'Paraguay': 'py',
+  'Peru': 'pe',
+  'United States': 'us',
+  'Uruguay': 'uy',
+  'Venezuela': 've'
+};
+
 // Paleta cromática semántica para fuentes individuales (Normativa del curso)
 const FUENTES_CONFIG = {
   'Renewables': { label: 'Renovables (Total)', color: '#10b981', type: 'macro' },
@@ -101,11 +124,14 @@ let currentMetric = 'gen'; // 'gen' (TWh) o 'share' (%)
 let isAudioEnabled = true;
 
 // Web Audio API para Sonificación Acústica
+// Mapeo solicitado:
+// 1. Ritmo / Picoteo (golpeteo como pájaro carpintero): mayor ritmo (taps más rápidos y constantes) = mayor volumen de emisiones (MtCO2e).
+// 2. Tono / Frecuencia del picoteo: grave = mayor fósil; agudo = mayor renovable.
 let audioCtx = null;
-let synthOsc = null;
-let synthGain = null;
-let noiseNode = null;
-let noiseGain = null;
+let woodPeckerTimer = null;
+let currentAudioFreq = 300;
+let currentTapInterval = 300; // ms
+let isTapping = false;
 
 function initAudio() {
   if (!audioCtx) {
@@ -119,63 +145,85 @@ function initAudio() {
   }
 }
 
-// Iniciar sintetizador de sonificación
+// Reproducir un 'tap' o 'picotazo' percusivo característico
+function playWoodpeckerTap(freq) {
+  if (!audioCtx || !isAudioEnabled) return;
+  
+  const now = audioCtx.currentTime;
+  
+  // Oscilador para cuerpo del picotazo
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  
+  // Filtro pasa banda para darle resonancia a madera hueca
+  const filter = audioCtx.createBiquadFilter();
+  filter.type = 'bandpass';
+  filter.frequency.setValueAtTime(freq, now);
+  filter.Q.setValueAtTime(4.0, now);
+
+  // Tono con rápido decaimiento de frecuencia (ataque de pájaro carpintero)
+  osc.type = 'triangle';
+  osc.frequency.setValueAtTime(freq * 1.5, now);
+  osc.frequency.exponentialRampToValueAtTime(Math.max(60, freq * 0.7), now + 0.045);
+
+  // Envolvente de amplitud muy percusiva (ataque inmediato ~2ms, decaimiento rápido ~40ms)
+  gain.gain.setValueAtTime(0.0001, now);
+  gain.gain.linearRampToValueAtTime(0.18, now + 0.003);
+  gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.05);
+
+  osc.connect(filter);
+  filter.connect(gain);
+  gain.connect(audioCtx.destination);
+
+  osc.start(now);
+  osc.stop(now + 0.055);
+}
+
+// Bucle dinámico que programa el siguiente picotazo según el intervalo actual
+function scheduleNextTap() {
+  if (!isTapping || !isAudioEnabled) return;
+  playWoodpeckerTap(currentAudioFreq);
+  woodPeckerTimer = setTimeout(() => {
+    scheduleNextTap();
+  }, currentTapInterval);
+}
+
+// Iniciar sintetizador de sonificación (ritmo picoteo)
 function startSonification() {
   if (!isAudioEnabled) return;
   initAudio();
   if (!audioCtx) return;
 
   stopSonification();
-
-  // Oscilador armónico (tono base relacionado con la descarbonización)
-  synthOsc = audioCtx.createOscillator();
-  synthGain = audioCtx.createGain();
-  synthOsc.type = 'triangle';
-  synthGain.gain.setValueAtTime(0.08, audioCtx.currentTime);
-
-  synthOsc.connect(synthGain);
-  synthGain.connect(audioCtx.destination);
-  synthOsc.start();
+  isTapping = true;
+  scheduleNextTap();
 }
 
-// Actualizar parámetros sonoros según intensidad de emisiones en tiempo real
-function updateSonification(intensity, renewShare) {
-  if (!isAudioEnabled || !audioCtx || !synthOsc || !synthGain) return;
+// Actualizar parámetros sonoros:
+// totalEmissions -> modula el ritmo (intervalo ms)
+// renewShare -> modula el tono (grave fósil <-> agudo renovable)
+function updateSonification(totalEmissions, renewShare, intensity) {
+  if (!isAudioEnabled || !audioCtx) return;
 
-  const now = audioCtx.currentTime;
+  // 1. Tono / Frecuencia:
+  // Grave (fósil ~130 Hz) <-> Agudo (renovable ~650 Hz)
+  const renRatio = Math.max(0, Math.min(1, renewShare / 100));
+  currentAudioFreq = 130 + renRatio * 520;
 
-  // Frecuencia acústica:
-  // - Mayor penetración renovable (matriz limpia) -> Tono ascendente más brillante (260Hz a 620Hz)
-  // - Mayor intensidad de fósiles -> Tono más grave y pesado (110Hz a 200Hz)
-  const cleanRatio = Math.max(0, Math.min(1, renewShare / 100));
-  const targetFreq = 120 + cleanRatio * 420;
-  synthOsc.frequency.setTargetAtTime(targetFreq, now, 0.08);
-
-  // Timbre: Si la intensidad de emisiones es muy alta (>500 gCO2e/kWh), se vuelve más rústico
-  if (intensity > 450) {
-    synthOsc.type = 'sawtooth';
-  } else if (intensity > 250) {
-    synthOsc.type = 'square';
-  } else {
-    synthOsc.type = 'sine'; // Tono puro cuando la energía es limpia
-  }
-
-  // Modulación de volumen por intensidad
-  const vol = 0.04 + Math.min(0.08, (intensity / 1000) * 0.06);
-  synthGain.gain.setTargetAtTime(vol, now, 0.08);
+  // 2. Ritmo / Picoteo (Frecuencia de golpeteo):
+  // Mayor emisión = ritmo más rápido (intervalo pequeño ~70ms como pájaro carpintero frenético)
+  // Menor emisión = ritmo espaciado y calmo (~550ms)
+  // Rango típico de total_emissions: 0.5 a 2600 MtCO2e (EE.UU. ~2500, países pequeños ~2-15)
+  // Usamos escala con raíz cuadrada para balancear países gigantes y pequeños
+  const normEm = Math.min(1, Math.sqrt(Math.max(0, totalEmissions)) / 50); // sqrt(2500) = 50 -> 1.0
+  currentTapInterval = Math.round(550 - normEm * 470); // Rango de 550ms a 80ms
 }
 
 function stopSonification() {
-  if (synthOsc) {
-    try {
-      synthOsc.stop();
-      synthOsc.disconnect();
-    } catch (e) {}
-    synthOsc = null;
-  }
-  if (synthGain) {
-    try { synthGain.disconnect(); } catch (e) {}
-    synthGain = null;
+  isTapping = false;
+  if (woodPeckerTimer) {
+    clearTimeout(woodPeckerTimer);
+    woodPeckerTimer = null;
   }
 }
 
@@ -277,6 +325,22 @@ async function renderMap() {
   globeGradient.append('stop').attr('offset', '70%').attr('stop-color', '#091122');
   globeGradient.append('stop').attr('offset', '100%').attr('stop-color', '#050a14');
 
+  // Patrones SVG de Banderas para los 19 países participantes
+  Object.keys(ISO_BANDERAS).forEach((cName) => {
+    const iso = ISO_BANDERAS[cName];
+    const pat = defs.append('pattern')
+      .attr('id', `flag-${iso}`)
+      .attr('patternUnits', 'objectBoundingBox')
+      .attr('width', '1')
+      .attr('height', '1');
+
+    pat.append('image')
+      .attr('href', `flags/${iso}.png`)
+      .attr('width', '100%')
+      .attr('height', '100%')
+      .attr('preserveAspectRatio', 'xMidYMid slice');
+  });
+
   const sphereCircle = svg.append('circle')
     .attr('cx', width / 2)
     .attr('cy', height / 2)
@@ -369,6 +433,11 @@ async function renderMap() {
       })
       .attr('d', pathGenerator)
       .attr('data-name', (d) => normalizarNombre(d.properties.name))
+      .attr('fill', (d) => {
+        const countryName = normalizarNombre(d.properties.name);
+        const iso = ISO_BANDERAS[countryName];
+        return iso ? `url(#flag-${iso})` : null;
+      })
       .on('mouseover', function (event, d) {
         const countryName = normalizarNombre(d.properties.name);
         const isEligible = PAISES_PRINCIPALES.includes(countryName);
@@ -445,10 +514,24 @@ function selectCountry(countryName, element) {
   viewIntro.classList.remove('active');
   viewCountrySelected.classList.add('active');
   actionFeedback.style.display = 'none';
+
+  // Iniciar la carrera automáticamente al seleccionar el país con retraso de 1.5 segundos
+  if (window.autoStartTimeout) {
+    clearTimeout(window.autoStartTimeout);
+  }
+  window.autoStartTimeout = setTimeout(() => {
+    if (selectedCountry === countryName) {
+      startChartRace();
+    }
+  }, 1500);
 }
 
 // Botón: Volver a la breve explicación
 btnBackToIntro.addEventListener('click', () => {
+  if (window.autoStartTimeout) {
+    clearTimeout(window.autoStartTimeout);
+    window.autoStartTimeout = null;
+  }
   if (chartAnimationId) {
     cancelAnimationFrame(chartAnimationId);
     chartAnimationId = null;
@@ -743,10 +826,11 @@ function startChartRace() {
     const currentRenShare = (countryData.sources && countryData.sources['Renewables'] && countryData.sources['Renewables'].share[idx]) || (countryData.renew_share && countryData.renew_share[idx]) || 0;
     const currentTotEm = (countryData.total_emissions && countryData.total_emissions[idx]) || 0;
 
-    updateSonification(currentIntensity, currentRenShare);
+    // Sonificación: ritmo (volumen de emisiones MtCO2e) y tono (renovable vs fósil)
+    updateSonification(currentTotEm, currentRenShare, currentIntensity);
 
     if (sonificationMetrics) {
-      sonificationMetrics.textContent = `${currentIntensity} gCO₂/kWh (${currentTotEm} MtCO₂e)`;
+      sonificationMetrics.textContent = `${currentTotEm} MtCO₂e • ${currentIntensity} gCO₂/kWh (${Math.round(currentRenShare)}% Renovable)`;
     }
 
     playbackProgress.style.width = `${progress * 100}%`;
