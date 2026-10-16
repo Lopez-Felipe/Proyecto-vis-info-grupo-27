@@ -124,21 +124,29 @@ let currentMetric = 'gen'; // 'gen' (TWh) o 'share' (%)
 let isAudioEnabled = true;
 
 // Web Audio API para Sonificación Acústica
-// 1. Emisiones Bajas (ej. < 15 MtCO2e o fase limpia): Sonido constante / armónico sostenido sin picoteo intermitente.
-// 2. Emisiones Altas: Golpeteo percusivo de pájaro carpintero; a mayores emisiones, mayor velocidad y ritmo continuo.
-// 3. Tono / Frecuencia marcadamente diferenciada:
-//    - Grave muy profundo (fósiles/carbón/gas): 90 Hz
-//    - Agudo muy brillante y nítido (renovable/limpio): 920 Hz
-// 4. Volumen incrementado y balanceado para buena presencia sonora.
+// Mapeo continuo y suave:
+// 1. Tono / Frecuencia:
+//    - Grave (fósil) = 110 Hz
+//    - Agudo (renovable) = 820 Hz
+// 2. Modulación de Ritmo / Pulsación:
+//    - Cero emisiones (0 MtCO2e): Tono continuo puro y constante (sin pulsación/silencios).
+//    - A medida que aumentan las emisiones: Se introduce una modulación rítmica periódica.
+//      Bajas emisiones -> Pulsación pausada y espaciada.
+//      Altas emisiones -> Pulso rápido, dinámico y frecuente.
+// 3. Interpolación suave (smoothing) entre cuadros para evitar transiciones abruptas.
+
 let audioCtx = null;
-let woodPeckerTimer = null;
-let continuousOsc = null;
-let continuousGain = null;
 let masterGain = null;
-let currentAudioFreq = 300;
-let currentTapInterval = 250; // ms
-let isContinuousMode = false;
+let baseCarrierOsc = null;
+let carrierGain = null;
+let pulseTimer = null;
 let isAudioRunning = false;
+
+// Estado suave de parámetros
+let smoothFreq = 300;
+let smoothEmissions = 0;
+let targetFreq = 300;
+let targetEmissions = 0;
 
 function initAudio() {
   if (!audioCtx) {
@@ -146,7 +154,7 @@ function initAudio() {
     if (AudioContext) {
       audioCtx = new AudioContext();
       masterGain = audioCtx.createGain();
-      masterGain.gain.setValueAtTime(0.85, audioCtx.currentTime); // Volumen alto y nítido para notebooks
+      masterGain.gain.setValueAtTime(0.85, audioCtx.currentTime); // Volumen óptimo para notebook
       masterGain.connect(audioCtx.destination);
     }
   }
@@ -155,147 +163,136 @@ function initAudio() {
   }
 }
 
-// Reproducir un 'tap' o 'picotazo' percusivo estilo pájaro carpintero con volumen potente
-function playWoodpeckerTap(freq) {
-  if (!audioCtx || !isAudioEnabled || !masterGain) return;
-  
+// Bucle dinámico de sonido que genera el pulso acústico con transición suave
+function triggerAudioPulse() {
+  if (!isAudioRunning || !isAudioEnabled || !audioCtx || !masterGain) return;
+
   const now = audioCtx.currentTime;
-  
+
+  // Si las emisiones son prácticamente cero (o muy bajas, < 3 MtCO2e), el sonido es continuo y constante
+  if (smoothEmissions < 3) {
+    if (carrierGain) {
+      carrierGain.gain.setTargetAtTime(0.65, now, 0.15); // Amplitud sostenida suave
+    }
+    pulseTimer = setTimeout(triggerAudioPulse, 100);
+    return;
+  }
+
+  // Si hay emisiones, producimos una pulsación rítmica
+  // Cuanto mayor sea la emisión, más corto es el intervalo de repetición (ritmo más rápido)
+  // Rango de intervalo: desde 480ms (pocas emisiones) hasta 75ms (altas emisiones como EE.UU. ~2500 MtCO2e)
+  const normEm = Math.min(1, Math.sqrt(Math.max(0, smoothEmissions)) / 50); // Escala progresiva
+  const interval = Math.round(480 - normEm * 405); // De 480ms a 75ms
+
+  // Duración del pulso proporcional al intervalo
+  const pulseDuration = Math.max(0.045, Math.min(0.09, interval / 1000 * 0.6));
+
+  // Generador de pulso armónico
   const osc = audioCtx.createOscillator();
-  const gain = audioCtx.createGain();
+  const pulseGain = audioCtx.createGain();
   const filter = audioCtx.createBiquadFilter();
 
   filter.type = 'bandpass';
-  filter.frequency.setValueAtTime(freq, now);
-  filter.Q.setValueAtTime(2.8, now);
+  filter.frequency.setValueAtTime(smoothFreq, now);
+  filter.Q.setValueAtTime(2.5, now);
 
-  // Tono picoteo: transición descendente rápida típica del golpe de carpintero
-  osc.type = freq > 450 ? 'sine' : 'triangle';
-  osc.frequency.setValueAtTime(freq * 1.6, now);
-  osc.frequency.exponentialRampToValueAtTime(Math.max(50, freq * 0.7), now + 0.05);
+  osc.type = smoothFreq > 400 ? 'sine' : 'triangle';
+  osc.frequency.setValueAtTime(smoothFreq * 1.3, now);
+  osc.frequency.exponentialRampToValueAtTime(Math.max(60, smoothFreq * 0.8), now + pulseDuration);
 
-  // Envolvente de volumen percusivo con pegada clara y potente
-  gain.gain.setValueAtTime(0.01, now);
-  gain.gain.linearRampToValueAtTime(0.80, now + 0.003); // Golpe potente para que suene fuerte en notebooks
-  gain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+  // Atenuamos el fondo continuo levemente para destacar el pulso
+  if (carrierGain) {
+    carrierGain.gain.setTargetAtTime(0.12, now, 0.05);
+  }
+
+  pulseGain.gain.setValueAtTime(0.01, now);
+  pulseGain.gain.linearRampToValueAtTime(0.75, now + 0.005);
+  pulseGain.gain.exponentialRampToValueAtTime(0.001, now + pulseDuration);
 
   osc.connect(filter);
-  filter.connect(gain);
-  gain.connect(masterGain);
+  filter.connect(pulseGain);
+  pulseGain.connect(masterGain);
 
   osc.start(now);
-  osc.stop(now + 0.065);
-}
+  osc.stop(now + pulseDuration + 0.02);
 
-// Sonido constante para emisiones bajas
-function startContinuousTone(freq) {
-  if (!audioCtx || !isAudioEnabled || !masterGain) return;
-  const now = audioCtx.currentTime;
-
-  if (!continuousOsc) {
-    continuousOsc = audioCtx.createOscillator();
-    continuousGain = audioCtx.createGain();
-
-    continuousOsc.type = 'sine';
-    continuousOsc.frequency.setValueAtTime(freq, now);
-
-    continuousGain.gain.setValueAtTime(0.01, now);
-    continuousGain.gain.linearRampToValueAtTime(0.55, now + 0.08); // Volumen constante alto y claro para notebooks
-
-    continuousOsc.connect(continuousGain);
-    continuousGain.connect(masterGain);
-    continuousOsc.start();
-  } else {
-    continuousOsc.frequency.setTargetAtTime(freq, now, 0.05);
-  }
-}
-
-function stopContinuousTone() {
-  if (continuousOsc) {
-    try {
-      const now = audioCtx ? audioCtx.currentTime : 0;
-      if (continuousGain && audioCtx) {
-        continuousGain.gain.setTargetAtTime(0.001, now, 0.03);
-      }
-      setTimeout(() => {
-        try {
-          if (continuousOsc) {
-            continuousOsc.stop();
-            continuousOsc.disconnect();
-          }
-        } catch (e) {}
-        continuousOsc = null;
-        continuousGain = null;
-      }, 50);
-    } catch (e) {
-      continuousOsc = null;
-      continuousGain = null;
-    }
-  }
-}
-
-// Bucle dinámico que programa el siguiente picotazo para emisiones medias y altas
-function scheduleNextTap() {
-  if (!isAudioRunning || !isAudioEnabled) return;
-  if (!isContinuousMode) {
-    playWoodpeckerTap(currentAudioFreq);
-  }
-  woodPeckerTimer = setTimeout(() => {
-    scheduleNextTap();
-  }, Math.max(50, currentTapInterval));
+  pulseTimer = setTimeout(triggerAudioPulse, interval);
 }
 
 // Iniciar sintetizador de sonificación
 function startSonification() {
   if (!isAudioEnabled) return;
   initAudio();
-  if (!audioCtx) return;
+  if (!audioCtx || !masterGain) return;
 
   stopSonification();
   isAudioRunning = true;
-  scheduleNextTap();
+
+  const now = audioCtx.currentTime;
+
+  // Oscilador de fondo armónico continuo
+  baseCarrierOsc = audioCtx.createOscillator();
+  carrierGain = audioCtx.createGain();
+
+  baseCarrierOsc.type = 'sine';
+  baseCarrierOsc.frequency.setValueAtTime(smoothFreq, now);
+
+  carrierGain.gain.setValueAtTime(0.01, now);
+  carrierGain.gain.linearRampToValueAtTime(0.40, now + 0.1);
+
+  baseCarrierOsc.connect(carrierGain);
+  carrierGain.connect(masterGain);
+  baseCarrierOsc.start(now);
+
+  triggerAudioPulse();
 }
 
-// Actualizar parámetros sonoros:
-// totalEmissions -> define si es sonido constante (< 18 MtCO2e) o picoteo ritmico
-// renewShare -> modula el tono (muy grave 90Hz fósil <-> muy agudo 920Hz renovable)
+// Actualizar parámetros sonoros de manera fluida y continua
 function updateSonification(totalEmissions, renewShare, intensity) {
   if (!isAudioEnabled || !audioCtx) return;
 
-  // 1. Tono / Frecuencia con fuerte contraste:
-  // Fósil 100% -> 90 Hz (grave retumbante)
-  // Renovable 100% -> 920 Hz (agudo claro y limpio)
   const renRatio = Math.max(0, Math.min(1, renewShare / 100));
-  currentAudioFreq = Math.round(90 + Math.pow(renRatio, 1.2) * 830);
+  // Rango de tono continuo: de 110 Hz (grave fósil) a 820 Hz (agudo renovable)
+  targetFreq = Math.round(110 + Math.pow(renRatio, 1.15) * 710);
+  targetEmissions = Math.max(0, totalEmissions);
 
-  // 2. Comportamiento según emisiones:
-  // Umbral de bajas emisiones (países pequeños o con matriz descarbonizada, < 20 MtCO2e)
-  // -> Sonido constante continuo
-  // Si supera 20 MtCO2e -> Ritmo de pájaro carpintero progresivo (de 380ms hasta 60ms)
-  const LOW_EMISSION_THRESHOLD = 20;
+  // Filtro de paso bajo suave (exponential smoothing) para evitar saltos bruscos
+  smoothFreq += (targetFreq - smoothFreq) * 0.25;
+  smoothEmissions += (targetEmissions - smoothEmissions) * 0.25;
 
-  if (totalEmissions <= LOW_EMISSION_THRESHOLD) {
-    isContinuousMode = true;
-    startContinuousTone(currentAudioFreq);
-  } else {
-    isContinuousMode = false;
-    stopContinuousTone();
-
-    // Ritmo acelerado: más emisiones = picoteo más rápido y continuo
-    const maxEm = 2500;
-    const progressEm = Math.min(1, Math.max(0, (totalEmissions - LOW_EMISSION_THRESHOLD) / maxEm));
-    // Escala cuadrática para percibir aceleración de forma contundente
-    currentTapInterval = Math.round(380 - Math.sqrt(progressEm) * 315); // Rango de 380ms a ~65ms
+  const now = audioCtx.currentTime;
+  if (baseCarrierOsc) {
+    baseCarrierOsc.frequency.setTargetAtTime(smoothFreq, now, 0.08);
   }
 }
 
 function stopSonification() {
   isAudioRunning = false;
-  if (woodPeckerTimer) {
-    clearTimeout(woodPeckerTimer);
-    woodPeckerTimer = null;
+  if (pulseTimer) {
+    clearTimeout(pulseTimer);
+    pulseTimer = null;
   }
-  stopContinuousTone();
+  if (baseCarrierOsc) {
+    try {
+      const now = audioCtx ? audioCtx.currentTime : 0;
+      if (carrierGain && audioCtx) {
+        carrierGain.gain.setTargetAtTime(0.001, now, 0.04);
+      }
+      setTimeout(() => {
+        try {
+          if (baseCarrierOsc) {
+            baseCarrierOsc.stop();
+            baseCarrierOsc.disconnect();
+          }
+        } catch (e) {}
+        baseCarrierOsc = null;
+        carrierGain = null;
+      }, 50);
+    } catch (e) {
+      baseCarrierOsc = null;
+      carrierGain = null;
+    }
+  }
 }
 
 // Elementos del DOM
@@ -396,8 +393,7 @@ async function renderMap() {
   globeGradient.append('stop').attr('offset', '70%').attr('stop-color', '#091122');
   globeGradient.append('stop').attr('offset', '100%').attr('stop-color', '#050a14');
 
-  // Patrones SVG de Banderas para los 19 países participantes
-  // Usamos patternUnits='objectBoundingBox' para que la bandera llene proporcionalmente cada polígono nacional
+  // Patrones SVG de Banderas Vectoriales para los 19 países participantes
   Object.keys(ISO_BANDERAS).forEach((cName) => {
     const iso = ISO_BANDERAS[cName];
     const flagSrc = (typeof FLAGS_BASE64 !== 'undefined' && FLAGS_BASE64[iso]) 
@@ -409,15 +405,15 @@ async function renderMap() {
       .attr('patternUnits', 'objectBoundingBox')
       .attr('width', 1)
       .attr('height', 1)
-      .attr('viewBox', '0 0 160 106')
-      .attr('preserveAspectRatio', 'none');
+      .attr('viewBox', '0 0 100 100')
+      .attr('preserveAspectRatio', 'xMidYMid slice');
 
     pat.append('image')
       .attr('href', flagSrc)
       .attr('xlink:href', flagSrc)
-      .attr('width', 160)
-      .attr('height', 106)
-      .attr('preserveAspectRatio', 'none');
+      .attr('width', 100)
+      .attr('height', 100)
+      .attr('preserveAspectRatio', 'xMidYMid slice');
   });
 
   const sphereCircle = svg.append('circle')
