@@ -1085,28 +1085,6 @@ body {
   background: rgba(16, 185, 129, 0.2);
 }
 
-.sonification-monitor {
-  background: rgba(11, 17, 30, 0.7);
-  border: 1px solid var(--border-subtle);
-  border-radius: 8px;
-  padding: 8px 12px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 0.75rem;
-  color: var(--text-secondary);
-}
-
-.sonification-label {
-  font-weight: 600;
-  color: var(--text-muted);
-}
-
-.sonification-metrics {
-  font-weight: 700;
-  color: var(--accent-cyan);
-}
-
 .btn-replay-small {
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid var(--border-subtle);
@@ -1124,58 +1102,30 @@ body {
   color: var(--accent-cyan);
 }
 
-/* Tarjeta de Breve Explicación de la Sonificación */
+/* Tarjeta de Breve Explicación de la Sonificación (1 variable) */
 .sonification-explanation-card {
   background: rgba(11, 17, 30, 0.75);
   border: 1px solid rgba(6, 182, 212, 0.25);
-  border-radius: 10px;
-  padding: 10px 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+  border-radius: 8px;
+  padding: 8px 12px;
 }
 
 .sonif-explain-header {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 0.82rem;
+  font-size: 0.80rem;
   color: var(--accent-cyan);
 }
 
 .sonif-icon {
-  font-size: 1rem;
+  font-size: 0.95rem;
 }
 
-.sonif-explain-rules {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+.sonif-simple-text {
   font-size: 0.78rem;
-  line-height: 1.35;
   color: #cbd5e1;
-}
-
-.sonif-rule {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.sonif-rule-tag {
-  font-weight: 700;
-  font-size: 0.74rem;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  display: inline-block;
-}
-
-.tag-ritmo {
-  color: #fbbf24;
-}
-
-.tag-tono {
-  color: #38bdf8;
+  font-weight: 400;
 }
 
 /* Feedback simple */

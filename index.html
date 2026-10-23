@@ -248,8 +248,8 @@
           <div class="options-section">
             <span class="options-title">MÉTRICA DEL EJE TEMPORAL:</span>
             <div class="metric-radios">
-              <label><input type="radio" name="metric-type" value="gen" checked> Generación (TWh)</label>
-              <label><input type="radio" name="metric-type" value="share"> Participación (%)</label>
+              <label><input type="radio" name="metric-type" value="gen" checked> <strong>Generación Eléctrica Anual</strong> (en Teravatios-hora — TWh)</label>
+              <label><input type="radio" name="metric-type" value="share"> <strong>Participación en la Matriz</strong> (% del total nacional)</label>
             </div>
           </div>
         </div>
@@ -285,28 +285,13 @@
                 <button id="btn-replay" class="btn-replay-small" title="Repetir animación">↻ Reiniciar</button>
               </div>
             </div>
-            <!-- Breve Explicación de la Sonificación -->
+            <!-- Breve Explicación de la Sonificación (1 solo canal de datos: Tono) -->
             <div class="sonification-explanation-card">
               <div class="sonif-explain-header">
                 <span class="sonif-icon">🎵</span>
-                <strong>Mapeo Acústico de la Sonificación</strong>
+                <strong>Sonificación:</strong>
+                <span class="sonif-simple-text"><strong>Grave</strong> = más uso de fósiles • <strong>Agudo</strong> = energías limpias.</span>
               </div>
-              <div class="sonif-explain-rules">
-                <div class="sonif-rule">
-                  <span class="sonif-rule-tag tag-ritmo">Ritmo / Frecuencia de Pulso:</span>
-                  <span><strong>Emisiones nulas (0 MtCO₂e):</strong> Tono continuo y sostenido sin pulsación. A medida que se incrementan las emisiones de gases de efecto invernadero, el audio transiciona progresivamente a pulsos rítmicos cada vez más veloces.</span>
-                </div>
-                <div class="sonif-rule">
-                  <span class="sonif-rule-tag tag-tono">Tono / Frecuencia Fundamental:</span>
-                  <span><strong>Registro Grave (110 Hz):</strong> Mayor dependencia de generación fósil (carbón, gas natural, petróleo). <strong>Registro Agudo (820 Hz):</strong> Mayor participación de fuentes limpias y renovables.</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Monitor en tiempo real de intensidad de emisiones y tono sonoro -->
-            <div id="sonification-monitor" class="sonification-monitor" style="display: none;">
-              <span class="sonification-label">Monitor Acústico de Emisiones:</span>
-              <span id="sonification-metrics" class="sonification-metrics">Cargando datos...</span>
             </div>
           </div>
         </div>

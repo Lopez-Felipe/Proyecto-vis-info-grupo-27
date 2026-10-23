@@ -156,29 +156,17 @@ let currentMetric = 'gen'; // 'gen' (TWh) o 'share' (%)
 let isAudioEnabled = true;
 
 // Web Audio API para Sonificación Acústica
-// Mapeo continuo y suave:
-// 1. Tono / Frecuencia:
-//    - Grave (fósil) = 110 Hz
-//    - Agudo (renovable) = 820 Hz
-// 2. Modulación de Ritmo / Pulsación:
-//    - Cero emisiones (0 MtCO2e): Tono continuo puro y constante (sin pulsación/silencios).
-//    - A medida que aumentan las emisiones: Se introduce una modulación rítmica periódica.
-//      Bajas emisiones -> Pulsación pausada y espaciada.
-//      Altas emisiones -> Pulso rápido, dinámico y frecuente.
-// 3. Interpolación suave (smoothing) entre cuadros para evitar transiciones abruptas.
-
+// 1 solo dato: Frecuencia continua (Tono). Sin ritmo.
+// Grave = más uso de fósiles | Agudo = energías limpias/renovables.
 let audioCtx = null;
 let masterGain = null;
 let baseCarrierOsc = null;
 let carrierGain = null;
-let pulseTimer = null;
 let isAudioRunning = false;
 
-// Estado suave de parámetros
-let smoothFreq = 300;
-let smoothEmissions = 0;
-let targetFreq = 300;
-let targetEmissions = 0;
+// Estado suave de frecuencia
+let smoothFreq = 220;
+let targetFreq = 220;
 
 function initAudio() {
   if (!audioCtx) {
@@ -186,7 +174,7 @@ function initAudio() {
     if (AudioContext) {
       audioCtx = new AudioContext();
       masterGain = audioCtx.createGain();
-      masterGain.gain.setValueAtTime(0.85, audioCtx.currentTime); // Volumen óptimo para notebook
+      masterGain.gain.setValueAtTime(0.80, audioCtx.currentTime); // Volumen óptimo para notebook
       masterGain.connect(audioCtx.destination);
     }
   }
@@ -195,102 +183,43 @@ function initAudio() {
   }
 }
 
-// Bucle dinámico de sonido que genera el pulso acústico con transición suave
-function triggerAudioPulse() {
-  if (!isAudioRunning || !isAudioEnabled || !audioCtx || !masterGain) return;
-
-  const now = audioCtx.currentTime;
-
-  // Si las emisiones son prácticamente cero (o muy bajas, < 3 MtCO2e), el sonido es continuo y constante
-  if (smoothEmissions < 3) {
-    if (carrierGain) {
-      carrierGain.gain.setTargetAtTime(0.65, now, 0.15); // Amplitud sostenida suave
-    }
-    pulseTimer = setTimeout(triggerAudioPulse, 100);
-    return;
-  }
-
-  // Si hay emisiones, producimos una pulsación rítmica
-  // Cuanto mayor sea la emisión, más corto es el intervalo de repetición (ritmo más rápido)
-  // Rango de intervalo: desde 480ms (pocas emisiones) hasta 75ms (altas emisiones como EE.UU. ~2500 MtCO2e)
-  const normEm = Math.min(1, Math.sqrt(Math.max(0, smoothEmissions)) / 50); // Escala progresiva
-  const interval = Math.round(480 - normEm * 405); // De 480ms a 75ms
-
-  // Duración del pulso proporcional al intervalo
-  const pulseDuration = Math.max(0.045, Math.min(0.09, interval / 1000 * 0.6));
-
-  // Generador de pulso armónico
-  const osc = audioCtx.createOscillator();
-  const pulseGain = audioCtx.createGain();
-  const filter = audioCtx.createBiquadFilter();
-
-  filter.type = 'bandpass';
-  filter.frequency.setValueAtTime(smoothFreq, now);
-  filter.Q.setValueAtTime(2.5, now);
-
-  osc.type = smoothFreq > 400 ? 'sine' : 'triangle';
-  osc.frequency.setValueAtTime(smoothFreq * 1.3, now);
-  osc.frequency.exponentialRampToValueAtTime(Math.max(60, smoothFreq * 0.8), now + pulseDuration);
-
-  // Atenuamos el fondo continuo levemente para destacar el pulso
-  if (carrierGain) {
-    carrierGain.gain.setTargetAtTime(0.12, now, 0.05);
-  }
-
-  pulseGain.gain.setValueAtTime(0.01, now);
-  pulseGain.gain.linearRampToValueAtTime(0.75, now + 0.005);
-  pulseGain.gain.exponentialRampToValueAtTime(0.001, now + pulseDuration);
-
-  osc.connect(filter);
-  filter.connect(pulseGain);
-  pulseGain.connect(masterGain);
-
-  osc.start(now);
-  osc.stop(now + pulseDuration + 0.02);
-
-  pulseTimer = setTimeout(triggerAudioPulse, interval);
-}
-
-// Iniciar sintetizador de sonificación
+// Iniciar sintetizador de sonificación (tono continuo)
 function startSonification() {
   if (!isAudioEnabled) return;
   initAudio();
   if (!audioCtx || !masterGain) return;
 
-  // Detenemos de forma síncrona cualquier instancia sonando previamente
+  // Detener cualquier instancia previa
   stopSonification();
   isAudioRunning = true;
 
   const now = audioCtx.currentTime;
 
-  // Oscilador de fondo armónico continuo
+  // Oscilador armónico continuo y suave
   baseCarrierOsc = audioCtx.createOscillator();
   carrierGain = audioCtx.createGain();
 
   baseCarrierOsc.type = 'sine';
   baseCarrierOsc.frequency.setValueAtTime(smoothFreq, now);
 
-  carrierGain.gain.setValueAtTime(0.01, now);
-  carrierGain.gain.linearRampToValueAtTime(0.40, now + 0.1);
+  carrierGain.gain.setValueAtTime(0.001, now);
+  carrierGain.gain.linearRampToValueAtTime(0.35, now + 0.12);
 
   baseCarrierOsc.connect(carrierGain);
   carrierGain.connect(masterGain);
   baseCarrierOsc.start(now);
-
-  triggerAudioPulse();
 }
 
-// Actualizar parámetros sonoros de manera fluida y continua
-function updateSonification(totalEmissions, renewShare, intensity) {
+// Actualizar tono: Grave (110 Hz = fósil) -> Agudo (780 Hz = energías limpias)
+function updateSonification(renewShare) {
   if (!isAudioEnabled || !audioCtx) return;
 
-  const renRatio = Math.max(0, Math.min(1, renewShare / 100));
-  targetFreq = Math.round(110 + Math.pow(renRatio, 1.15) * 710);
-  targetEmissions = Math.max(0, totalEmissions);
+  const renRatio = Math.max(0, Math.min(1, (renewShare || 0) / 100));
+  // 110 Hz (grave) a 780 Hz (agudo)
+  targetFreq = Math.round(110 + renRatio * 670);
 
-  // Filtro de paso bajo suave (exponential smoothing) para evitar saltos bruscos
-  smoothFreq += (targetFreq - smoothFreq) * 0.25;
-  smoothEmissions += (targetEmissions - smoothEmissions) * 0.25;
+  // Suavizado exponencial para evitar clics acústicos
+  smoothFreq += (targetFreq - smoothFreq) * 0.28;
 
   const now = audioCtx.currentTime;
   if (baseCarrierOsc) {
@@ -300,10 +229,6 @@ function updateSonification(totalEmissions, renewShare, intensity) {
 
 function stopSonification() {
   isAudioRunning = false;
-  if (pulseTimer) {
-    clearTimeout(pulseTimer);
-    pulseTimer = null;
-  }
   if (baseCarrierOsc) {
     try {
       baseCarrierOsc.stop();
@@ -347,6 +272,7 @@ const tabTopMenor = document.getElementById('tab-top-menor');
 const top5List = document.getElementById('top5-list');
 
 // Chart elements
+const chartTitle = document.getElementById('chart-title');
 const chartPlaceholder = document.getElementById('chart-placeholder');
 const chartContainer = document.getElementById('chart-container');
 const chartPlaybackBar = document.getElementById('chart-playback-bar');
@@ -355,8 +281,6 @@ const playbackProgress = document.getElementById('playback-progress');
 const playbackStatus = document.getElementById('playback-status');
 const btnReplay = document.getElementById('btn-replay');
 const soundIndicator = document.getElementById('sound-indicator');
-const sonificationMonitor = document.getElementById('sonification-monitor');
-const sonificationMetrics = document.getElementById('sonification-metrics');
 
 // Normalizador de nombres de países
 function normalizarNombre(nombre) {
@@ -705,6 +629,13 @@ function startChartRace() {
   chartPlaybackBar.style.display = 'flex';
   optionsPanel.style.display = 'none';
 
+  // Actualizar título informativo del gráfico
+  if (chartTitle) {
+    const espName = NOMBRES_ESP[selectedCountry] || selectedCountry;
+    const metricDesc = currentMetric === 'share' ? 'Participación (%)' : 'Generación (TWh)';
+    chartTitle.textContent = `Evolución Anual en ${espName} (${metricDesc})`;
+  }
+
   // Preparar series a dibujar según las opciones seleccionadas
   const seriesToDraw = [];
 
@@ -767,10 +698,10 @@ function startChartRace() {
     return;
   }
 
-  // Dimensiones ampliadas para mejor visualización
+  // Dimensiones ampliadas para mejor visualización y títulos de ejes legibles
   const width = chartContainer.clientWidth || 550;
-  const height = 290;
-  const margin = { top: 20, right: 35, bottom: 35, left: 55 };
+  const height = 310;
+  const margin = { top: 22, right: 35, bottom: 48, left: 68 };
 
   chartContainer.innerHTML = '';
 
@@ -806,7 +737,7 @@ function startChartRace() {
 
   // Ejes X e Y
   const xAxis = d3.axisBottom(xScale).ticks(6).tickFormat(d3.format('d'));
-  const yAxis = d3.axisLeft(yScale).ticks(5).tickFormat((d) => (currentMetric === 'share' ? `${d}%` : `${d} TWh`));
+  const yAxis = d3.axisLeft(yScale).ticks(5).tickFormat((d) => (currentMetric === 'share' ? `${d}%` : `${d}`));
 
   g.append('g')
     .attr('class', 'axis axis-x')
@@ -818,6 +749,33 @@ function startChartRace() {
     .attr('class', 'axis axis-y')
     .call(yAxis)
     .attr('color', '#64748b');
+
+  // Título del Eje X: Años (Cápsula 14 & 15: claridad de escalas y variables)
+  g.append('text')
+    .attr('class', 'axis-title axis-title-x')
+    .attr('x', innerW / 2)
+    .attr('y', innerH + 38)
+    .attr('text-anchor', 'middle')
+    .attr('fill', '#94a3b8')
+    .attr('font-size', '11px')
+    .attr('font-weight', '600')
+    .text('Línea de Tiempo (Años 2000 — 2025)');
+
+  // Título del Eje Y: Métrica cuantitativa con definición precisa
+  const yTitleText = currentMetric === 'share'
+    ? 'Participación en la Matriz Eléctrica (% del total)'
+    : 'Generación Eléctrica Anual (TWh = Teravatios-hora)';
+
+  g.append('text')
+    .attr('class', 'axis-title axis-title-y')
+    .attr('transform', 'rotate(-90)')
+    .attr('x', -innerH / 2)
+    .attr('y', -50)
+    .attr('text-anchor', 'middle')
+    .attr('fill', '#94a3b8')
+    .attr('font-size', '11px')
+    .attr('font-weight', '600')
+    .text(yTitleText);
 
   // Cuadrícula horizontal sutil
   g.append('g')
@@ -887,11 +845,10 @@ function startChartRace() {
       .attr('stroke-width', 1);
   });
 
-  // Activar sonificación acústica al arrancar la carrera
+  // Activar sonificación acústica al arrancar la carrera (Tono: Grave = fósil, Agudo = limpio)
   startSonification();
-  if (sonificationMonitor) sonificationMonitor.style.display = 'flex';
 
-  // Animación continua y fluida (tiempo duplicado para sonificación y lectura pausada: ~7.6 segundos)
+  // Animación continua y fluida (~7.6 segundos)
   const duration = 7600;
   let startTime = null;
 
@@ -917,17 +874,9 @@ function startChartRace() {
       guideDots[i].attr('cx', currentX).attr('cy', yScale(s.values[idx]));
     });
 
-    // Actualizar sonificación acústica en tiempo real con datos de emisiones
-    const currentIntensity = (countryData.intensity && countryData.intensity[idx]) || 0;
+    // Actualizar sonificación acústica (1 solo dato: participación renovable vs fósil)
     const currentRenShare = (countryData.sources && countryData.sources['Renewables'] && countryData.sources['Renewables'].share[idx]) || (countryData.renew_share && countryData.renew_share[idx]) || 0;
-    const currentTotEm = (countryData.total_emissions && countryData.total_emissions[idx]) || 0;
-
-    // Sonificación: ritmo (volumen de emisiones MtCO2e) y tono (renovable vs fósil)
-    updateSonification(currentTotEm, currentRenShare, currentIntensity);
-
-    if (sonificationMetrics) {
-      sonificationMetrics.textContent = `${currentTotEm} MtCO₂e • ${currentIntensity} gCO₂/kWh (${Math.round(currentRenShare)}% Renovable)`;
-    }
+    updateSonification(currentRenShare);
 
     playbackProgress.style.width = `${progress * 100}%`;
 
