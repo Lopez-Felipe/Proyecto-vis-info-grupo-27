@@ -68,36 +68,35 @@ const ISO_BANDERAS = {
   'Venezuela': 've'
 };
 
-// Zonas Geográficas de las Américas y su paleta cromática distinguible
+// Zonas Geográficas de las Américas clasificadas en las 3 macro-regiones
+// 1. Norteamérica (Azul / Celeste)
+// 2. Centroamérica y Caribe (Ámbar / Naranja)
+// 3. Sudamérica (Verde esmeralda / Menta)
 const ZONAS_GEOGRAFICAS = {
-  // América del Norte (Azul zafiro / celeste nórdico)
-  'Canada': { zona: 'Norteamérica', color: '#38bdf8', border: '#7dd3fc' },
-  'United States': { zona: 'Norteamérica', color: '#0284c7', border: '#38bdf8' },
-  'Mexico': { zona: 'Norteamérica', color: '#0369a1', border: '#0ea5e9' },
+  // 1. América del Norte (Gama Azulada / Zafiro)
+  'Canada': { zona: 'Norteamérica', color: '#0284c7', border: '#7dd3fc' },
+  'United States': { zona: 'Norteamérica', color: '#0369a1', border: '#38bdf8' },
+  'Mexico': { zona: 'Norteamérica', color: '#075985', border: '#0ea5e9' },
 
-  // Centroamérica y Caribe (Ámbar / Esmeralda cálido)
-  'Guatemala': { zona: 'Centroamérica y Caribe', color: '#f59e0b', border: '#fcd34d' },
-  'Honduras': { zona: 'Centroamérica y Caribe', color: '#d97706', border: '#fbbf24' },
-  'Nicaragua': { zona: 'Centroamérica y Caribe', color: '#b45309', border: '#f59e0b' },
-  'Costa Rica': { zona: 'Centroamérica y Caribe', color: '#10b981', border: '#6ee7b7' },
-  'Panama': { zona: 'Centroamérica y Caribe', color: '#059669', border: '#34d399' },
-  'Cuba': { zona: 'Centroamérica y Caribe', color: '#f97316', border: '#fdba74' },
+  // 2. Centroamérica y el Caribe (Gama Cálida / Ámbar y Naranja)
+  'Guatemala': { zona: 'Centroamérica y Caribe', color: '#d97706', border: '#fcd34d' },
+  'Honduras': { zona: 'Centroamérica y Caribe', color: '#b45309', border: '#fbbf24' },
+  'Nicaragua': { zona: 'Centroamérica y Caribe', color: '#c2410c', border: '#f97316' },
+  'Costa Rica': { zona: 'Centroamérica y Caribe', color: '#ea580c', border: '#fdba74' },
+  'Panama': { zona: 'Centroamérica y Caribe', color: '#f59e0b', border: '#fde68a' },
+  'Cuba': { zona: 'Centroamérica y Caribe', color: '#eab308', border: '#fef08a' },
 
-  // Región Andina (Púrpura / Amatista / Violeta)
-  'Colombia': { zona: 'Región Andina', color: '#8b5cf6', border: '#c4b5fd' },
-  'Venezuela': { zona: 'Región Andina', color: '#7c3aed', border: '#a78bfa' },
-  'Ecuador': { zona: 'Región Andina', color: '#6d28d9', border: '#8b5cf6' },
-  'Peru': { zona: 'Región Andina', color: '#9333ea', border: '#d8b4fe' },
-  'Bolivia': { zona: 'Región Andina', color: '#a855f7', border: '#e9d5ff' },
-
-  // Brasil (Gigante Sudamericano - Verde tropical característico)
-  'Brazil': { zona: 'Brasil', color: '#16a34a', border: '#4ade80' },
-
-  // Cono Sur (Coral / Rubí / Rojo rosáceo)
-  'Chile': { zona: 'Cono Sur', color: '#e11d48', border: '#fb7185' },
-  'Argentina': { zona: 'Cono Sur', color: '#be123c', border: '#f43f5e' },
-  'Paraguay': { zona: 'Cono Sur', color: '#ec4899', border: '#f472b6' },
-  'Uruguay': { zona: 'Cono Sur', color: '#db2777', border: '#f9a8d4' }
+  // 3. América del Sur (Gama Verde / Esmeralda y Turquesa)
+  'Colombia': { zona: 'Sudamérica', color: '#059669', border: '#6ee7b7' },
+  'Venezuela': { zona: 'Sudamérica', color: '#047857', border: '#34d399' },
+  'Ecuador': { zona: 'Sudamérica', color: '#0d9488', border: '#5eead4' },
+  'Peru': { zona: 'Sudamérica', color: '#0f766e', border: '#2dd4bf' },
+  'Bolivia': { zona: 'Sudamérica', color: '#115e59', border: '#14b8a6' },
+  'Brazil': { zona: 'Sudamérica', color: '#16a34a', border: '#4ade80' },
+  'Chile': { zona: 'Sudamérica', color: '#15803d', border: '#86efac' },
+  'Argentina': { zona: 'Sudamérica', color: '#166534', border: '#bbf7d0' },
+  'Paraguay': { zona: 'Sudamérica', color: '#4d7c0f', border: '#a3e635' },
+  'Uruguay': { zona: 'Sudamérica', color: '#3f6212', border: '#bef264' }
 };
 
 // Paleta cromática semántica para fuentes individuales (Normativa del curso)
