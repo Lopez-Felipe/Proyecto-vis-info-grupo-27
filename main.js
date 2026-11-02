@@ -241,6 +241,46 @@ function stopSonification() {
     } catch (e) {}
     carrierGain = null;
   }
+  // Al detener o pausar la animación, Arduino vuelve al estado de espera (parpadeo cada 0.5s)
+  enviarComandoArduino('S');
+}
+
+// ==========================================
+// CONEXIÓN DIRECTA A ARDUINO POR USB (Web Serial API)
+// '1' = Ganan limpias (LED encendido)
+// '0' = Ganan fósiles (LED apagado)
+// 'S' = Espera/Standby (LED parpadea cada 0.5s)
+// ==========================================
+let arduinoPort = null;
+let arduinoWriter = null;
+let arduinoUltimoEstado = '';
+
+async function conectarArduinoAutomatico() {
+  if (!("serial" in navigator)) return; // Si el navegador no soporta Serial, continúa normal sin fallar
+  if (arduinoPort && arduinoWriter) return;
+
+  try {
+    arduinoPort = await navigator.serial.requestPort();
+    await arduinoPort.open({ baudRate: 9600 });
+    const textEncoder = new TextEncoderStream();
+    textEncoder.readable.pipeTo(arduinoPort.writable);
+    arduinoWriter = textEncoder.writable.getWriter();
+    console.log("✓ Arduino conectado con éxito vía USB");
+    enviarComandoArduino('S');
+  } catch (err) {
+    console.warn("Conexión con Arduino no establecida:", err);
+  }
+}
+
+async function enviarComandoArduino(cmd) {
+  if (arduinoWriter && cmd !== arduinoUltimoEstado) {
+    try {
+      arduinoUltimoEstado = cmd;
+      await arduinoWriter.write(cmd);
+    } catch (err) {
+      console.warn("Error enviando comando a Arduino:", err);
+    }
+  }
 }
 
 // Elementos del DOM
@@ -492,7 +532,10 @@ async function renderMap() {
 // ==========================================
 // SELECCIÓN DE PAÍS Y ESTADOS DE INTERFAZ
 // ==========================================
-function selectCountry(countryName, element) {
+async function selectCountry(countryName, element) {
+  // Solicita y conecta el puerto serie del Arduino con el clic del país
+  await conectarArduinoAutomatico();
+
   selectedCountry = countryName;
 
   // Detener animación previa si la hubiera
@@ -876,6 +919,15 @@ function startChartRace() {
     // Actualizar sonificación acústica (1 solo dato: participación renovable vs fósil)
     const currentRenShare = (countryData.sources && countryData.sources['Renewables'] && countryData.sources['Renewables'].share[idx]) || (countryData.renew_share && countryData.renew_share[idx]) || 0;
     updateSonification(currentRenShare);
+
+    // Actuador Físico Arduino:
+    // Si ganan las energías limpias (>= 50%), encendemos el LED ('1')
+    // Si ganan los fósiles (< 50%), apagamos el LED ('0')
+    if (currentRenShare >= 50) {
+      enviarComandoArduino('1');
+    } else {
+      enviarComandoArduino('0');
+    }
 
     playbackProgress.style.width = `${progress * 100}%`;
 
