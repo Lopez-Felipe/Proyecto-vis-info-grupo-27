@@ -277,29 +277,29 @@
     let pais1Seleccionado = null;
     let pais2Seleccionado = null;
 
-    // Normalizador amigable de países en español
+    // Normalizador amigable de países en español con clave canónica en inglés para los datos
     const PAISES_MAP = {
-      'argentina': { name: 'Argentina', zone: 'Sudamérica', flag: 'ar' },
-      'bolivia': { name: 'Bolivia', zone: 'Sudamérica', flag: 'bo' },
-      'brazil': { name: 'Brasil', zone: 'Sudamérica', flag: 'br' },
-      'brasil': { name: 'Brasil', zone: 'Sudamérica', flag: 'br' },
-      'canada': { name: 'Canadá', zone: 'Norteamérica', flag: 'ca' },
-      'chile': { name: 'Chile', zone: 'Sudamérica', flag: 'cl' },
-      'colombia': { name: 'Colombia', zone: 'Sudamérica', flag: 'co' },
-      'costa rica': { name: 'Costa Rica', zone: 'Centroamérica & Caribe', flag: 'cr' },
-      'cuba': { name: 'Cuba', zone: 'Centroamérica & Caribe', flag: 'cu' },
-      'ecuador': { name: 'Ecuador', zone: 'Sudamérica', flag: 'ec' },
-      'guatemala': { name: 'Guatemala', zone: 'Centroamérica & Caribe', flag: 'gt' },
-      'honduras': { name: 'Honduras', zone: 'Centroamérica & Caribe', flag: 'hn' },
-      'mexico': { name: 'México', zone: 'Norteamérica', flag: 'mx' },
-      'nicaragua': { name: 'Nicaragua', zone: 'Centroamérica & Caribe', flag: 'ni' },
-      'panama': { name: 'Panamá', zone: 'Centroamérica & Caribe', flag: 'pa' },
-      'paraguay': { name: 'Paraguay', zone: 'Sudamérica', flag: 'py' },
-      'peru': { name: 'Perú', zone: 'Sudamérica', flag: 'pe' },
-      'united states': { name: 'Estados Unidos', zone: 'Norteamérica', flag: 'us' },
-      'estados unidos': { name: 'Estados Unidos', zone: 'Norteamérica', flag: 'us' },
-      'uruguay': { name: 'Uruguay', zone: 'Sudamérica', flag: 'uy' },
-      'venezuela': { name: 'Venezuela', zone: 'Sudamérica', flag: 've' }
+      'argentina': { key: 'Argentina', name: 'Argentina', zone: 'Sudamérica', flag: 'ar' },
+      'bolivia': { key: 'Bolivia', name: 'Bolivia', zone: 'Sudamérica', flag: 'bo' },
+      'brazil': { key: 'Brazil', name: 'Brasil', zone: 'Sudamérica', flag: 'br' },
+      'brasil': { key: 'Brazil', name: 'Brasil', zone: 'Sudamérica', flag: 'br' },
+      'canada': { key: 'Canada', name: 'Canadá', zone: 'Norteamérica', flag: 'ca' },
+      'chile': { key: 'Chile', name: 'Chile', zone: 'Sudamérica', flag: 'cl' },
+      'colombia': { key: 'Colombia', name: 'Colombia', zone: 'Sudamérica', flag: 'co' },
+      'costa rica': { key: 'Costa Rica', name: 'Costa Rica', zone: 'Centroamérica y Caribe', flag: 'cr' },
+      'cuba': { key: 'Cuba', name: 'Cuba', zone: 'Centroamérica y Caribe', flag: 'cu' },
+      'ecuador': { key: 'Ecuador', name: 'Ecuador', zone: 'Sudamérica', flag: 'ec' },
+      'guatemala': { key: 'Guatemala', name: 'Guatemala', zone: 'Centroamérica y Caribe', flag: 'gt' },
+      'honduras': { key: 'Honduras', name: 'Honduras', zone: 'Centroamérica y Caribe', flag: 'hn' },
+      'mexico': { key: 'Mexico', name: 'México', zone: 'Norteamérica', flag: 'mx' },
+      'nicaragua': { key: 'Nicaragua', name: 'Nicaragua', zone: 'Centroamérica y Caribe', flag: 'ni' },
+      'panama': { key: 'Panama', name: 'Panamá', zone: 'Centroamérica y Caribe', flag: 'pa' },
+      'paraguay': { key: 'Paraguay', name: 'Paraguay', zone: 'Sudamérica', flag: 'py' },
+      'peru': { key: 'Peru', name: 'Perú', zone: 'Sudamérica', flag: 'pe' },
+      'united states': { key: 'United States', name: 'Estados Unidos', zone: 'Norteamérica', flag: 'us' },
+      'estados unidos': { key: 'United States', name: 'Estados Unidos', zone: 'Norteamérica', flag: 'us' },
+      'uruguay': { key: 'Uruguay', name: 'Uruguay', zone: 'Sudamérica', flag: 'uy' },
+      'venezuela': { key: 'Venezuela', name: 'Venezuela', zone: 'Sudamérica', flag: 've' }
     };
 
     // Inicializar conexión PeerJS con el computador
@@ -361,7 +361,7 @@
       let match = null;
       for (const [key, val] of Object.entries(PAISES_MAP)) {
         if (limpio.includes(key)) {
-          match = { key: key, ...val };
+          match = { ...val };
           break;
         }
       }

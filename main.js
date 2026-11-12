@@ -70,20 +70,15 @@ const ISO_BANDERAS = {
 
 // Zonas Geográficas de las Américas clasificadas en las 3 macro-regiones
 const ZONAS_GEOGRAFICAS = {
-  // 1. América del Norte (Gama Cálida / Anaranjados y Ámbar)
   'Canada': { zona: 'Norteamérica', color: '#ea580c', border: '#fdba74' },
   'United States': { zona: 'Norteamérica', color: '#f97316', border: '#fcd34d' },
   'Mexico': { zona: 'Norteamérica', color: '#c2410c', border: '#fb923c' },
-
-  // 2. Centroamérica y el Caribe (Gama Verde / Esmeralda y Menta)
   'Guatemala': { zona: 'Centroamérica y Caribe', color: '#16a34a', border: '#86efac' },
   'Honduras': { zona: 'Centroamérica y Caribe', color: '#15803d', border: '#4ade80' },
   'Nicaragua': { zona: 'Centroamérica y Caribe', color: '#059669', border: '#6ee7b7' },
   'Costa Rica': { zona: 'Centroamérica y Caribe', color: '#10b981', border: '#a7f3d0' },
   'Panama': { zona: 'Centroamérica y Caribe', color: '#047857', border: '#34d399' },
   'Cuba': { zona: 'Centroamérica y Caribe', color: '#65a30d', border: '#bef264' },
-
-  // 3. América del Sur (Gama Azul / Zafiro y Celeste)
   'Colombia': { zona: 'Sudamérica', color: '#0284c7', border: '#7dd3fc' },
   'Venezuela': { zona: 'Sudamérica', color: '#0369a1', border: '#38bdf8' },
   'Ecuador': { zona: 'Sudamérica', color: '#0ea5e9', border: '#bae6fd' },
@@ -96,7 +91,7 @@ const ZONAS_GEOGRAFICAS = {
   'Uruguay': { zona: 'Sudamérica', color: '#1d4ed8', border: '#60a5fa' }
 };
 
-// Paleta cromática semántica para fuentes individuales (Normativa del curso)
+// Configuración de fuentes energéticas
 const FUENTES_CONFIG = {
   'Renewables': { label: 'Renovables (Total)', color: '#10b981', type: 'macro' },
   'Fossil': { label: 'Fósiles (Total)', color: '#ef4444', type: 'macro' },
@@ -110,7 +105,7 @@ const FUENTES_CONFIG = {
   'Other fossil': { label: 'Otros Fósiles', color: '#e11d48', type: 'individual', category: 'fos' }
 };
 
-// Función auxiliar para obtener la bandera en base64 de forma 100% segura
+// Función auxiliar para obtener la bandera en Base64
 function obtenerBanderaSrc(countryName) {
   const iso = ISO_BANDERAS[countryName];
   if (iso && typeof FLAGS_BASE64 !== 'undefined' && FLAGS_BASE64[iso]) {
@@ -119,7 +114,45 @@ function obtenerBanderaSrc(countryName) {
   return '';
 }
 
-// Top 5 de transición (2000 vs Último año disponible)
+// ==========================================
+// CONEXIÓN DIRECTA A ARDUINO (Web Serial API)
+// Envía comandos "P1,P2" para 2 Servomotores (Aerogeneradores)
+// ==========================================
+let arduinoPort = null;
+let arduinoWriter = null;
+let arduinoUltimoComando = '';
+
+async function conectarArduinoAutomatico() {
+  if (!("serial" in navigator)) {
+    console.warn("Navegador no soporta Web Serial API");
+    return;
+  }
+  if (arduinoPort && arduinoWriter) return;
+  try {
+    arduinoPort = await navigator.serial.requestPort();
+    await arduinoPort.open({ baudRate: 9600 });
+    const textEncoder = new TextEncoderStream();
+    textEncoder.readable.pipeTo(arduinoPort.writable);
+    arduinoWriter = textEncoder.writable.getWriter();
+    console.log("✓ Arduino conectado con éxito vía USB (Control de 2 Servos)");
+    enviarComandoArduino('STOP');
+  } catch (err) {
+    console.warn("Conexión con Arduino no establecida:", err);
+  }
+}
+
+async function enviarComandoArduino(cmd) {
+  if (arduinoWriter && cmd !== arduinoUltimoComando) {
+    try {
+      arduinoUltimoComando = cmd;
+      await arduinoWriter.write(cmd + '\n');
+    } catch (err) {
+      console.warn("Error enviando comando a Arduino:", err);
+    }
+  }
+}
+
+// Top 5 Transición
 const TOP5_MAYOR = [
   { country: 'Nicaragua', start_year: 2000, end_year: 2024, start_share: 21.5, end_share: 62.4, diff: 40.9 },
   { country: 'Guatemala', start_year: 2000, end_year: 2024, start_share: 50.2, end_share: 68.3, diff: 18.2 },
@@ -136,7 +169,7 @@ const TOP5_MENOR = [
   { country: 'Brazil', start_year: 2000, end_year: 2025, start_share: 89.5, end_share: 86.9, diff: -2.6 }
 ];
 
-// Top 5 de Generación Eléctrica
+// Top 5 Generación
 const TOP5_GIGANTES_GEN = [
   { country: 'United States', year: 2025, gen: 4519.8 },
   { country: 'Brazil', year: 2025, gen: 763.7 },
@@ -153,27 +186,25 @@ const TOP5_MENORES_GEN = [
   { country: 'Panama', year: 2024, gen: 13.4 }
 ];
 
-// Estado global de datos y visualización
+// Estado global
 let energyData = {};
 let selectedCountry = null;
 let chartAnimationId = null;
-let currentMetric = 'gen'; // 'gen' (TWh) o 'share' (%)
+let currentMetric = 'gen';
 let isAudioEnabled = true;
 
-// Estado del Modo Comparativo Celular (Tangible)
+// Estado modo comparativo
 let compareCountry1 = null;
 let compareCountry2 = null;
 let compareAnimationId = null;
 let peerInstance = null;
 let peerConnection = null;
-let currentPeerRoomId = null;
 
-// Web Audio API para Sonificación Acústica
+// Audio
 let audioCtx = null;
 let masterGain = null;
 let baseCarrierOsc = null;
 let carrierGain = null;
-let isAudioRunning = false;
 let smoothFreq = 220;
 let targetFreq = 220;
 
@@ -197,7 +228,6 @@ function startSonification() {
   initAudio();
   if (!audioCtx || !masterGain) return;
   stopSonification();
-  isAudioRunning = true;
   const now = audioCtx.currentTime;
   baseCarrierOsc = audioCtx.createOscillator();
   carrierGain = audioCtx.createGain();
@@ -222,7 +252,6 @@ function updateSonification(renewShare) {
 }
 
 function stopSonification() {
-  isAudioRunning = false;
   if (baseCarrierOsc) {
     try {
       baseCarrierOsc.stop();
@@ -253,7 +282,6 @@ const btnBackToIntro = document.getElementById('btn-back-to-intro');
 const actionFeedback = document.getElementById('action-feedback');
 const tooltip = document.getElementById('map-tooltip');
 
-// Elementos Top Generación y Top Transición
 const btnShowTopGen = document.getElementById('btn-show-top-gen');
 const topGenContainer = document.getElementById('top-gen-container');
 const tabGenGigantes = document.getElementById('tab-gen-gigantes');
@@ -266,7 +294,6 @@ const tabTopMayor = document.getElementById('tab-top-mayor');
 const tabTopMenor = document.getElementById('tab-top-menor');
 const top5List = document.getElementById('top5-list');
 
-// Elementos Chart Individual
 const chartTitle = document.getElementById('chart-title');
 const chartPlaceholder = document.getElementById('chart-placeholder');
 const chartContainer = document.getElementById('chart-container');
@@ -277,13 +304,11 @@ const playbackStatus = document.getElementById('playback-status');
 const btnReplay = document.getElementById('btn-replay');
 const soundIndicator = document.getElementById('sound-indicator');
 
-// Elementos Modo Comparativo Dual (Celular Tangible)
 const btnOpenMobileModal = document.getElementById('btn-open-mobile-modal');
 const mobileQrModal = document.getElementById('mobile-qr-modal');
 const btnCloseQrModal = document.getElementById('btn-close-qr-modal');
 const qrcodeCanvas = document.getElementById('qrcode-canvas');
 const qrDirectLink = document.getElementById('qr-direct-link');
-const qrStatusIndicator = document.getElementById('qr-status-indicator');
 
 const pcSlot1 = document.getElementById('pc-slot-1');
 const pcSlot2 = document.getElementById('pc-slot-2');
@@ -304,13 +329,25 @@ const comparePlaybackStatus = document.getElementById('compare-playback-status')
 const compareYearBadge = document.getElementById('compare-year-badge');
 const btnReplayCompare = document.getElementById('btn-replay-compare');
 
-// Normalizador de nombres de países
+// Normalizador canónico de nombres
 function normalizarNombre(nombre) {
   if (!nombre) return '';
   const n = nombre.trim();
-  if (n === 'United States of America' || n === 'USA' || n === 'United States') return 'United States';
-  if (n === 'Bolivia, Plurinational State of' || n === 'Bolivia (Plurinational State of)') return 'Bolivia';
-  if (n === 'Venezuela, Bolivarian Republic of' || n === 'Venezuela (Bolivarian Republic of)') return 'Venezuela';
+  const lower = n.toLowerCase();
+  
+  if (lower === 'united states' || lower === 'estados unidos' || lower === 'usa' || lower === 'united states of america') return 'United States';
+  if (lower === 'brazil' || lower === 'brasil') return 'Brazil';
+  if (lower === 'canada' || lower === 'canadá') return 'Canada';
+  if (lower === 'mexico' || lower === 'méxico') return 'Mexico';
+  if (lower === 'panama' || lower === 'panamá') return 'Panama';
+  if (lower === 'peru' || lower === 'perú') return 'Peru';
+  if (lower === 'bolivia' || lower.includes('bolivia')) return 'Bolivia';
+  if (lower === 'venezuela' || lower.includes('venezuela')) return 'Venezuela';
+  if (lower === 'costa rica') return 'Costa Rica';
+  
+  for (const p of PAISES_PRINCIPALES) {
+    if (p.toLowerCase() === lower) return p;
+  }
   return n;
 }
 
@@ -326,9 +363,7 @@ async function loadEnergyData() {
   }
 }
 
-// ==========================================
-// RENDERIZADO DEL MAPA INTERACTIVO (GLOBO)
-// ==========================================
+// Renderizado del globo terráqueo interactivo
 async function renderMap() {
   const container = document.getElementById('map-container');
   const width = container.clientWidth || 800;
@@ -352,7 +387,6 @@ async function renderMap() {
 
   const defs = svg.append('defs');
 
-  // Gradiente esférico
   const globeGradient = defs.append('radialGradient')
     .attr('id', 'globe-shading')
     .attr('cx', '45%')
@@ -394,7 +428,6 @@ async function renderMap() {
     }
   }
 
-  // Interacción de Arrastre 360°
   let dragStartPos = null;
   let dragStartRotation = null;
   const drag = d3.drag()
@@ -413,7 +446,6 @@ async function renderMap() {
       updateGlobe();
     });
 
-  // Zoom
   const zoom = d3.zoom()
     .scaleExtent([0.5, 4.0])
     .on('zoom', (event) => {
@@ -512,10 +544,8 @@ async function renderMap() {
   }
 }
 
-// ==========================================
-// SELECCIÓN DE PAÍS INDIVIDUAL
-// ==========================================
-function selectCountry(countryName, element) {
+// Selección de país individual
+async function selectCountry(countryName, element) {
   selectedCountry = countryName;
 
   if (chartAnimationId) {
@@ -523,7 +553,6 @@ function selectCountry(countryName, element) {
     chartAnimationId = null;
   }
 
-  // Resaltado en mapa
   d3.selectAll('.country').classed('country-selected', false);
   if (element) {
     d3.select(element).classed('country-selected', true);
@@ -536,7 +565,6 @@ function selectCountry(countryName, element) {
   const displayName = NOMBRES_ESP[countryName] || countryName;
   selectedCountryNameEl.textContent = displayName;
 
-  // Actualizar bandera en el header
   const flagSrc = obtenerBanderaSrc(countryName);
   if (selectedCountryFlagEl) {
     if (flagSrc) {
@@ -557,7 +585,6 @@ function selectCountry(countryName, element) {
 
   if (headerCountryBadge) headerCountryBadge.style.display = 'block';
 
-  // Ocultar modo dual si estuviera activo
   viewDualCompare.style.display = 'none';
   viewIntro.classList.remove('active');
   viewCountrySelected.classList.add('active');
@@ -566,13 +593,13 @@ function selectCountry(countryName, element) {
   prepareChartPreview();
 }
 
-// Volver al modo introductorio
 btnBackToIntro.addEventListener('click', () => {
   if (chartAnimationId) {
     cancelAnimationFrame(chartAnimationId);
     chartAnimationId = null;
   }
   stopSonification();
+  enviarComandoArduino('STOP');
   selectedCountry = null;
   d3.selectAll('.country').classed('country-selected', false);
   if (headerCountryBadge) headerCountryBadge.style.display = 'none';
@@ -582,7 +609,6 @@ btnBackToIntro.addEventListener('click', () => {
   actionFeedback.style.display = 'none';
 });
 
-// Toggle sonido
 if (soundIndicator) {
   soundIndicator.addEventListener('click', () => {
     isAudioEnabled = !isAudioEnabled;
@@ -624,7 +650,7 @@ btnReplay.addEventListener('click', () => {
   startChartRace();
 });
 
-// Preparar gráfico estático previo a animación individual
+// Preparar gráfico individual
 function prepareChartPreview() {
   if (!selectedCountry || !energyData[selectedCountry]) return;
   const countryData = energyData[selectedCountry];
@@ -838,9 +864,7 @@ function prepareChartPreview() {
   });
 }
 
-// ==========================================
-// GRÁFICO DINÁMICO INDIVIDUAL: REVELACIÓN FLUIDA
-// ==========================================
+// Gráfico dinámico individual
 function startChartRace() {
   if (!selectedCountry || !energyData[selectedCountry]) {
     alert('No hay datos energéticos disponibles para ' + selectedCountry);
@@ -1082,6 +1106,10 @@ function startChartRace() {
     const currentRenShare = (countryData.sources && countryData.sources['Renewables'] && countryData.sources['Renewables'].share[idx]) || (countryData.renew_share && countryData.renew_share[idx]) || 0;
     updateSonification(currentRenShare);
 
+    // Si Arduino está conectado, enviamos al servo 1
+    const p1Val = Math.round(currentRenShare);
+    enviarComandoArduino(`${p1Val},0`);
+
     playbackProgress.style.width = `${progress * 100}%`;
 
     if (progress < 1) {
@@ -1090,6 +1118,7 @@ function startChartRace() {
       playbackStatus.textContent = 'Carrera completada ✓';
       chartAnimationId = null;
       stopSonification();
+      enviarComandoArduino('STOP');
     }
   }
 
@@ -1100,12 +1129,10 @@ function startChartRace() {
 // MODO COMPARACIÓN TANGIBLE (CELULAR + 2 RANURAS)
 // ==========================================
 
-// Inicializar conexión PeerJS para que el celular se enlace
 function initPeerConnection() {
   if (peerInstance) return;
 
   const randomRoom = 'descarbo-' + Math.floor(1000 + Math.random() * 9000);
-  currentPeerRoomId = randomRoom;
 
   try {
     peerInstance = new Peer(randomRoom);
@@ -1119,7 +1146,6 @@ function initPeerConnection() {
       peerConnection = conn;
       console.log('✓ Celular conectado exitosamente vía WebRTC!');
 
-      // Cerrar modal QR y pasar a la interfaz de doble comparación
       if (mobileQrModal) mobileQrModal.style.display = 'none';
       activarModoComparacionDual();
 
@@ -1140,7 +1166,6 @@ function initPeerConnection() {
   }
 }
 
-// Generar código QR apuntando a mobile.html con ?room=ID
 function renderQRCode(roomId) {
   if (!qrcodeCanvas) return;
   qrcodeCanvas.innerHTML = '';
@@ -1166,7 +1191,6 @@ function renderQRCode(roomId) {
   }
 }
 
-// Botón para abrir modal QR
 if (btnOpenMobileModal) {
   btnOpenMobileModal.addEventListener('click', () => {
     initPeerConnection();
@@ -1180,7 +1204,6 @@ if (btnCloseQrModal) {
   });
 }
 
-// Cambiar la vista de la pantalla del PC al modo de dos ranuras
 function activarModoComparacionDual() {
   viewIntro.classList.remove('active');
   viewCountrySelected.classList.remove('active');
@@ -1196,7 +1219,6 @@ function activarModoComparacionDual() {
   stopSonification();
 }
 
-// Volver al mapa individual desde el modo comparativo
 if (btnBackFromCompare) {
   btnBackFromCompare.addEventListener('click', () => {
     if (compareAnimationId) {
@@ -1204,23 +1226,24 @@ if (btnBackFromCompare) {
       compareAnimationId = null;
     }
     stopSonification();
+    enviarComandoArduino('STOP');
     viewDualCompare.style.display = 'none';
     viewIntro.classList.add('active');
   });
 }
 
-// Manejar los mensajes entrantes desde el celular
+// Manejar mensajes entrantes desde el celular
 function handleMobileMessage(msg) {
   if (!msg || !msg.type) return;
 
   if (msg.type === 'SELECT_COUNTRY_1') {
-    const rawCountry = msg.country.key;
+    const rawCountry = (msg.country && msg.country.key) || msg.country;
     const countryName = normalizarNombre(rawCountry);
     compareCountry1 = countryName;
     actualizarSlotUI(1, countryName, msg.country.zone);
     verificarListosParaComparar();
   } else if (msg.type === 'SELECT_COUNTRY_2') {
-    const rawCountry = msg.country.key;
+    const rawCountry = (msg.country && msg.country.key) || msg.country;
     const countryName = normalizarNombre(rawCountry);
     compareCountry2 = countryName;
     actualizarSlotUI(2, countryName, msg.country.zone);
@@ -1230,7 +1253,7 @@ function handleMobileMessage(msg) {
   }
 }
 
-// Actualizar visualmente la ranura del país 1 o país 2
+// Actualizar ranura visual de país 1 o 2
 function actualizarSlotUI(slotNum, countryName, fallbackZone) {
   const espName = NOMBRES_ESP[countryName] || countryName;
   const flagSrc = obtenerBanderaSrc(countryName);
@@ -1244,7 +1267,6 @@ function actualizarSlotUI(slotNum, countryName, fallbackZone) {
     pcFlag1.innerHTML = flagImgHtml;
     pcSlot1.classList.add('slot-filled');
 
-    // Resaltar en el globo terráqueo
     d3.selectAll('.country').filter(function() {
       return d3.select(this).attr('data-name') === countryName;
     }).classed('country-selected', true);
@@ -1260,7 +1282,6 @@ function actualizarSlotUI(slotNum, countryName, fallbackZone) {
   }
 }
 
-// Verificar si ambos países están escaneados para preparar el gráfico
 function verificarListosParaComparar() {
   if (compareCountry1 && compareCountry2) {
     btnStartCompare.style.display = 'inline-flex';
@@ -1269,18 +1290,19 @@ function verificarListosParaComparar() {
 }
 
 if (btnStartCompare) {
-  btnStartCompare.addEventListener('click', () => {
+  btnStartCompare.addEventListener('click', async () => {
+    await conectarArduinoAutomatico();
     iniciarCarreraComparativa();
   });
 }
 
 if (btnReplayCompare) {
-  btnReplayCompare.addEventListener('click', () => {
+  btnReplayCompare.addEventListener('click', async () => {
+    await conectarArduinoAutomatico();
     iniciarCarreraComparativa();
   });
 }
 
-// Preparar vista previa estática del gráfico comparativo dual
 function prepararGraficoComparativoPreview() {
   if (!compareCountry1 || !compareCountry2) return;
   const d1 = energyData[compareCountry1];
@@ -1299,7 +1321,6 @@ function prepararGraficoComparativoPreview() {
   dibujarGraficoComparativoDual(0, false);
 }
 
-// Dibujar la escena comparativa con D3
 function dibujarGraficoComparativoDual(progressPercent, isStaticPreview = true) {
   const d1 = energyData[compareCountry1];
   const d2 = energyData[compareCountry2];
@@ -1327,7 +1348,6 @@ function dibujarGraficoComparativoDual(progressPercent, isStaticPreview = true) 
     .domain([minYear, maxYear])
     .range([0, innerW]);
 
-  // En comparación el eje Y va de 0% a 100% de participación limpia vs fósil
   const yScale = d3.scaleLinear()
     .domain([0, 100])
     .range([innerH, 0]);
@@ -1335,7 +1355,6 @@ function dibujarGraficoComparativoDual(progressPercent, isStaticPreview = true) 
   const g = svg.append('g')
     .attr('transform', `translate(${margin.left},${margin.top})`);
 
-  // Ejes
   const xAxis = d3.axisBottom(xScale).ticks(6).tickFormat(d3.format('d'));
   const yAxis = d3.axisLeft(yScale).ticks(5).tickFormat((d) => `${d}%`);
 
@@ -1371,13 +1390,11 @@ function dibujarGraficoComparativoDual(progressPercent, isStaticPreview = true) 
     .attr('font-weight', '600')
     .text('Participación Renovable vs Fósil (%)');
 
-  // Cuadrícula y línea de referencia del 50%
   g.append('g')
     .attr('class', 'grid')
     .call(d3.axisLeft(yScale).ticks(5).tickSize(-innerW).tickFormat(''))
     .attr('stroke', 'rgba(255,255,255,0.06)');
 
-  // Línea 50%
   g.append('line')
     .attr('x1', 0)
     .attr('x2', innerW)
@@ -1394,14 +1411,12 @@ function dibujarGraficoComparativoDual(progressPercent, isStaticPreview = true) 
     .attr('font-size', '10px')
     .text('50% Umbral de Transición');
 
-  // Valores de los dos países
   const ren1 = (d1.sources && d1.sources['Renewables'] && d1.sources['Renewables'].share) || d1.renew_share || [];
   const fos1 = (d1.sources && d1.sources['Fossil'] && d1.sources['Fossil'].share) || d1.fossil_share || [];
 
   const ren2 = (d2.sources && d2.sources['Renewables'] && d2.sources['Renewables'].share) || d2.renew_share || [];
   const fos2 = (d2.sources && d2.sources['Fossil'] && d2.sources['Fossil'].share) || d2.fossil_share || [];
 
-  // Clip Path animado
   const clipId = `compare-clip-path`;
   svg.append('defs')
     .append('clipPath')
@@ -1415,7 +1430,6 @@ function dibujarGraficoComparativoDual(progressPercent, isStaticPreview = true) 
 
   const chartArea = g.append('g').attr('clip-path', `url(#${clipId})`);
 
-  // Líneas País 1 (Sólidas)
   const lineRen1 = d3.line()
     .x((d, i) => xScale(years[i]))
     .y((d) => yScale(d))
@@ -1443,7 +1457,6 @@ function dibujarGraficoComparativoDual(progressPercent, isStaticPreview = true) 
     .attr('stroke-width', 2.2)
     .attr('stroke-opacity', 0.85);
 
-  // Líneas País 2 (Punteadas / Trazos Distintivos)
   const lineRen2 = d3.line()
     .x((d, i) => xScale(years[i]))
     .y((d) => yScale(d))
@@ -1473,7 +1486,6 @@ function dibujarGraficoComparativoDual(progressPercent, isStaticPreview = true) 
     .attr('stroke-dasharray', '6 3')
     .attr('stroke-opacity', 0.85);
 
-  // Indicador de Cursor
   const currentX = innerW * progressPercent;
   g.append('line')
     .attr('id', 'compare-cursor-line')
@@ -1485,7 +1497,6 @@ function dibujarGraficoComparativoDual(progressPercent, isStaticPreview = true) 
     .attr('x1', currentX)
     .attr('x2', currentX);
 
-  // Guía de puntos finales o actuales
   const idx = Math.min(Math.floor(progressPercent * (years.length - 1)), years.length - 1);
   if (ren1.length > 0) {
     g.append('circle')
@@ -1509,7 +1520,7 @@ function dibujarGraficoComparativoDual(progressPercent, isStaticPreview = true) 
   }
 }
 
-// Iniciar animación fluida de la carrera comparativa dual
+// Iniciar carrera comparativa dual con sincronización a 2 Servos Arduino
 function iniciarCarreraComparativa() {
   if (!compareCountry1 || !compareCountry2) return;
   const d1 = energyData[compareCountry1];
@@ -1529,7 +1540,6 @@ function iniciarCarreraComparativa() {
   document.getElementById('compare-chart-title').textContent = `${esp1} (Sólida) vs ${esp2} (Punteada)`;
 
   dibujarGraficoComparativoDual(0, false);
-
   startSonification();
 
   const duration = 7600;
@@ -1570,8 +1580,15 @@ function iniciarCarreraComparativa() {
       d3.select('#compare-dot-ren2').attr('cx', currentX).attr('cy', yScale(ren2[idx]));
     }
 
-    // Sonificación combinada basada en el promedio o país 1
-    const avgRen = ((ren1[idx] || 0) + (ren2[idx] || 0)) / 2;
+    const share1 = Math.round(ren1[idx] || 0);
+    const share2 = Math.round(ren2[idx] || 0);
+
+    // ==========================================
+    // ENVIAR SEÑAL A ARDUINO PARA LOS 2 SERVOS: "P1,P2"
+    // ==========================================
+    enviarComandoArduino(`${share1},${share2}`);
+
+    const avgRen = (share1 + share2) / 2;
     updateSonification(avgRen);
 
     comparePlaybackProgress.style.width = `${progress * 100}%`;
@@ -1588,15 +1605,14 @@ function iniciarCarreraComparativa() {
       comparePlaybackStatus.textContent = `Carrera completada ✓ • ${ganador}`;
       compareAnimationId = null;
       stopSonification();
+      enviarComandoArduino('STOP');
     }
   }
 
   compareAnimationId = requestAnimationFrame(animateCompare);
 }
 
-// ==========================================
-// TOP 5 TRANSICIÓN EN PLANO BASE
-// ==========================================
+// Top 5 Transición
 function renderTop5(rankingList, isMayor) {
   top5List.innerHTML = '';
   rankingList.forEach((item, index) => {
@@ -1620,9 +1636,7 @@ function renderTop5(rankingList, isMayor) {
   });
 }
 
-// ==========================================
-// TOP GENERACIÓN ELÉCTRICA (PESOS PESADOS VS MENORES)
-// ==========================================
+// Top 5 Generación
 function renderTopGen(rankingList, isGigantes) {
   topGenList.innerHTML = '';
   rankingList.forEach((item, index) => {
