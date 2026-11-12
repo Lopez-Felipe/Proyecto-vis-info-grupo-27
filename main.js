@@ -20,6 +20,7 @@ const PAISES_PRINCIPALES = [
   'Uruguay',
   'Venezuela'
 ];
+
 // Mapeo amigable de nombres (Inglés <-> Español)
 const NOMBRES_ESP = {
   'Argentina': 'Argentina',
@@ -43,6 +44,7 @@ const NOMBRES_ESP = {
   'Uruguay': 'Uruguay',
   'Venezuela': 'Venezuela'
 };
+
 // Códigos ISO de dos letras para cargar banderas
 const ISO_BANDERAS = {
   'Argentina': 'ar',
@@ -65,6 +67,7 @@ const ISO_BANDERAS = {
   'Uruguay': 'uy',
   'Venezuela': 've'
 };
+
 // Zonas Geográficas de las Américas clasificadas en las 3 macro-regiones
 // 1. Norteamérica (Anaranjados)
 // 2. Centroamérica y Caribe (Verdes)
@@ -74,6 +77,7 @@ const ZONAS_GEOGRAFICAS = {
   'Canada': { zona: 'Norteamérica', color: '#ea580c', border: '#fdba74' },
   'United States': { zona: 'Norteamérica', color: '#f97316', border: '#fcd34d' },
   'Mexico': { zona: 'Norteamérica', color: '#c2410c', border: '#fb923c' },
+
   // 2. Centroamérica y el Caribe (Gama Verde / Esmeralda y Menta)
   'Guatemala': { zona: 'Centroamérica y Caribe', color: '#16a34a', border: '#86efac' },
   'Honduras': { zona: 'Centroamérica y Caribe', color: '#15803d', border: '#4ade80' },
@@ -81,6 +85,7 @@ const ZONAS_GEOGRAFICAS = {
   'Costa Rica': { zona: 'Centroamérica y Caribe', color: '#10b981', border: '#a7f3d0' },
   'Panama': { zona: 'Centroamérica y Caribe', color: '#047857', border: '#34d399' },
   'Cuba': { zona: 'Centroamérica y Caribe', color: '#65a30d', border: '#bef264' },
+
   // 3. América del Sur (Gama Azul / Zafiro y Celeste)
   'Colombia': { zona: 'Sudamérica', color: '#0284c7', border: '#7dd3fc' },
   'Venezuela': { zona: 'Sudamérica', color: '#0369a1', border: '#38bdf8' },
@@ -93,6 +98,7 @@ const ZONAS_GEOGRAFICAS = {
   'Paraguay': { zona: 'Sudamérica', color: '#3b82f6', border: '#93c5fd' },
   'Uruguay': { zona: 'Sudamérica', color: '#1d4ed8', border: '#60a5fa' }
 };
+
 // Paleta cromática semántica para fuentes individuales (Normativa del curso)
 const FUENTES_CONFIG = {
   'Renewables': { label: 'Renovables (Total)', color: '#10b981', type: 'macro' },
@@ -106,7 +112,8 @@ const FUENTES_CONFIG = {
   'Gas': { label: 'Gas Natural', color: '#f97316', type: 'individual', category: 'fos' },
   'Other fossil': { label: 'Otros Fósiles', color: '#e11d48', type: 'individual', category: 'fos' }
 };
-// Datos calculados del Top 5 de transición (2000 vs Último año disponible)
+
+// Top 5 de transición (2000 vs Último año disponible)
 const TOP5_MAYOR = [
   { country: 'Nicaragua', start_year: 2000, end_year: 2024, start_share: 21.5, end_share: 62.4, diff: 40.9 },
   { country: 'Guatemala', start_year: 2000, end_year: 2024, start_share: 50.2, end_share: 68.3, diff: 18.2 },
@@ -114,6 +121,7 @@ const TOP5_MAYOR = [
   { country: 'Chile', start_year: 2000, end_year: 2025, start_share: 49.8, end_share: 66.4, diff: 16.5 },
   { country: 'United States', start_year: 2000, end_year: 2025, start_share: 9.2, end_share: 25.6, diff: 16.4 }
 ];
+
 const TOP5_MENOR = [
   { country: 'Peru', start_year: 2000, end_year: 2025, start_share: 82.0, end_share: 63.6, diff: -18.3 },
   { country: 'Bolivia', start_year: 2000, end_year: 2025, start_share: 51.5, end_share: 36.1, diff: -15.4 },
@@ -121,7 +129,8 @@ const TOP5_MENOR = [
   { country: 'Cuba', start_year: 2000, end_year: 2024, start_share: 6.9, end_share: 4.0, diff: -2.8 },
   { country: 'Brazil', start_year: 2000, end_year: 2025, start_share: 89.5, end_share: 86.9, diff: -2.6 }
 ];
-// Datos del Top 5 de Generación Eléctrica (Pesos Pesados vs Menores Productores)
+
+// Top 5 de Generación Eléctrica
 const TOP5_GIGANTES_GEN = [
   { country: 'United States', year: 2025, gen: 4519.8 },
   { country: 'Brazil', year: 2025, gen: 763.7 },
@@ -129,6 +138,7 @@ const TOP5_GIGANTES_GEN = [
   { country: 'Mexico', year: 2025, gen: 389.7 },
   { country: 'Argentina', year: 2025, gen: 153.3 }
 ];
+
 const TOP5_MENORES_GEN = [
   { country: 'Nicaragua', year: 2024, gen: 4.5 },
   { country: 'Costa Rica', year: 2025, gen: 11.8 },
@@ -136,30 +146,38 @@ const TOP5_MENORES_GEN = [
   { country: 'Honduras', year: 2024, gen: 12.5 },
   { country: 'Panama', year: 2024, gen: 13.4 }
 ];
+
 // Estado global de datos y visualización
 let energyData = {};
 let selectedCountry = null;
 let chartAnimationId = null;
 let currentMetric = 'gen'; // 'gen' (TWh) o 'share' (%)
 let isAudioEnabled = true;
+
+// Estado del Modo Comparativo Celular (Tangible)
+let compareCountry1 = null;
+let compareCountry2 = null;
+let compareAnimationId = null;
+let peerInstance = null;
+let peerConnection = null;
+let currentPeerRoomId = null;
+
 // Web Audio API para Sonificación Acústica
-// 1 solo dato: Frecuencia continua (Tono). Sin ritmo.
-// Grave = más uso de fósiles | Agudo = energías limpias/renovables.
 let audioCtx = null;
 let masterGain = null;
 let baseCarrierOsc = null;
 let carrierGain = null;
 let isAudioRunning = false;
-// Estado suave de frecuencia
 let smoothFreq = 220;
 let targetFreq = 220;
+
 function initAudio() {
   if (!audioCtx) {
     const AudioContext = window.AudioContext || window.webkitAudioContext;
     if (AudioContext) {
       audioCtx = new AudioContext();
       masterGain = audioCtx.createGain();
-      masterGain.gain.setValueAtTime(0.80, audioCtx.currentTime); // Volumen óptimo para notebook
+      masterGain.gain.setValueAtTime(0.80, audioCtx.currentTime);
       masterGain.connect(audioCtx.destination);
     }
   }
@@ -167,17 +185,14 @@ function initAudio() {
     audioCtx.resume();
   }
 }
-// Iniciar sintetizador de sonificación (tono continuo)
+
 function startSonification() {
   if (!isAudioEnabled) return;
   initAudio();
   if (!audioCtx || !masterGain) return;
-  // Detener cualquier instancia previa
   stopSonification();
-  enviarComandoArduino('STOP');
   isAudioRunning = true;
   const now = audioCtx.currentTime;
-  // Oscilador armónico continuo y suave
   baseCarrierOsc = audioCtx.createOscillator();
   carrierGain = audioCtx.createGain();
   baseCarrierOsc.type = 'sine';
@@ -188,19 +203,18 @@ function startSonification() {
   carrierGain.connect(masterGain);
   baseCarrierOsc.start(now);
 }
-// Actualizar tono: Grave (110 Hz = fósil) -> Agudo (780 Hz = energías limpias)
+
 function updateSonification(renewShare) {
   if (!isAudioEnabled || !audioCtx) return;
   const renRatio = Math.max(0, Math.min(1, (renewShare || 0) / 100));
-  // 110 Hz (grave) a 780 Hz (agudo)
   targetFreq = Math.round(110 + renRatio * 670);
-  // Suavizado exponencial para evitar clics acústicos
   smoothFreq += (targetFreq - smoothFreq) * 0.28;
   const now = audioCtx.currentTime;
   if (baseCarrierOsc) {
     baseCarrierOsc.frequency.setTargetAtTime(smoothFreq, now, 0.08);
   }
 }
+
 function stopSonification() {
   isAudioRunning = false;
   if (baseCarrierOsc) {
@@ -216,46 +230,12 @@ function stopSonification() {
     } catch (e) {}
     carrierGain = null;
   }
-  // Al detener o pausar la animación, Arduino vuelve al estado de espera (parpadeo cada 0.5s)
-  enviarComandoArduino('STOP');
 }
-// ==========================================
-// CONEXIÓN DIRECTA A ARDUINO POR USB (Web Serial API)
-// '1' = Ganan limpias (LED encendido)
-// '0' = Ganan fósiles (LED apagado)
-// 'S' = Espera/Standby (LED parpadea cada 0.5s)
-// ==========================================
-let arduinoPort = null;
-let arduinoWriter = null;
-let arduinoUltimoEstado = '';
-async function conectarArduinoAutomatico() {
-  if (!("serial" in navigator)) return; // Si el navegador no soporta Serial, continúa normal sin fallar
-  if (arduinoPort && arduinoWriter) return;
-  try {
-    arduinoPort = await navigator.serial.requestPort();
-    await arduinoPort.open({ baudRate: 9600 });
-    const textEncoder = new TextEncoderStream();
-    textEncoder.readable.pipeTo(arduinoPort.writable);
-    arduinoWriter = textEncoder.writable.getWriter();
-    console.log("✓ Arduino conectado con éxito vía USB");
-    enviarComandoArduino('STOP');
-  } catch (err) {
-    console.warn("Conexión con Arduino no establecida:", err);
-  }
-}
-async function enviarComandoArduino(cmd) {
-  if (arduinoWriter && cmd !== arduinoUltimoEstado) {
-    try {
-      arduinoUltimoEstado = cmd;
-      await arduinoWriter.write(cmd + '\n');
-    } catch (err) {
-      console.warn("Error enviando comando a Arduino:", err);
-    }
-  }
-}
+
 // Elementos del DOM
 const viewIntro = document.getElementById('view-intro');
 const viewCountrySelected = document.getElementById('view-country-selected');
+const viewDualCompare = document.getElementById('view-dual-compare');
 const headerCountryBadge = document.getElementById('header-country-badge');
 const selectedCountryNameEl = document.getElementById('selected-country-name');
 const btnSelectOptions = document.getElementById('btn-select-options');
@@ -265,19 +245,21 @@ const btnStart = document.getElementById('btn-start');
 const btnBackToIntro = document.getElementById('btn-back-to-intro');
 const actionFeedback = document.getElementById('action-feedback');
 const tooltip = document.getElementById('map-tooltip');
-// Top Generación Eléctrica elements
+
+// Elementos Top Generación y Top Transición
 const btnShowTopGen = document.getElementById('btn-show-top-gen');
 const topGenContainer = document.getElementById('top-gen-container');
 const tabGenGigantes = document.getElementById('tab-gen-gigantes');
 const tabGenMenores = document.getElementById('tab-gen-menores');
 const topGenList = document.getElementById('top-gen-list');
-// Top 5 Transición elements
+
 const btnShowTop5 = document.getElementById('btn-show-top5');
 const top5Container = document.getElementById('top5-container');
 const tabTopMayor = document.getElementById('tab-top-mayor');
 const tabTopMenor = document.getElementById('tab-top-menor');
 const top5List = document.getElementById('top5-list');
-// Chart elements
+
+// Elementos Chart Individual
 const chartTitle = document.getElementById('chart-title');
 const chartPlaceholder = document.getElementById('chart-placeholder');
 const chartContainer = document.getElementById('chart-container');
@@ -287,6 +269,34 @@ const playbackProgress = document.getElementById('playback-progress');
 const playbackStatus = document.getElementById('playback-status');
 const btnReplay = document.getElementById('btn-replay');
 const soundIndicator = document.getElementById('sound-indicator');
+
+// Elementos Modo Comparativo Dual (Celular Tangible)
+const btnOpenMobileModal = document.getElementById('btn-open-mobile-modal');
+const mobileQrModal = document.getElementById('mobile-qr-modal');
+const btnCloseQrModal = document.getElementById('btn-close-qr-modal');
+const qrcodeCanvas = document.getElementById('qrcode-canvas');
+const qrDirectLink = document.getElementById('qr-direct-link');
+const qrStatusIndicator = document.getElementById('qr-status-indicator');
+
+const pcSlot1 = document.getElementById('pc-slot-1');
+const pcSlot2 = document.getElementById('pc-slot-2');
+const pcFlag1 = document.getElementById('pc-flag-1');
+const pcFlag2 = document.getElementById('pc-flag-2');
+const pcName1 = document.getElementById('pc-name-1');
+const pcName2 = document.getElementById('pc-name-2');
+const pcZone1 = document.getElementById('pc-zone-1');
+const pcZone2 = document.getElementById('pc-zone-2');
+
+const btnStartCompare = document.getElementById('btn-start-compare');
+const btnBackFromCompare = document.getElementById('btn-back-from-compare');
+const compareChartContainer = document.getElementById('compare-chart-container');
+const comparePlaceholder = document.getElementById('compare-placeholder');
+const comparePlaybackBar = document.getElementById('compare-playback-bar');
+const comparePlaybackProgress = document.getElementById('compare-playback-progress');
+const comparePlaybackStatus = document.getElementById('compare-playback-status');
+const compareYearBadge = document.getElementById('compare-year-badge');
+const btnReplayCompare = document.getElementById('btn-replay-compare');
+
 // Normalizador de nombres de países
 function normalizarNombre(nombre) {
   if (!nombre) return '';
@@ -296,6 +306,7 @@ function normalizarNombre(nombre) {
   if (n === 'Venezuela, Bolivarian Republic of' || n === 'Venezuela (Bolivarian Republic of)') return 'Venezuela';
   return n;
 }
+
 // Cargar dataset exportado
 async function loadEnergyData() {
   try {
@@ -307,6 +318,7 @@ async function loadEnergyData() {
     console.warn('Cargando con fallback interno:', err);
   }
 }
+
 // ==========================================
 // RENDERIZADO DEL MAPA INTERACTIVO (GLOBO)
 // ==========================================
@@ -317,26 +329,33 @@ async function renderMap() {
   const initialScale = Math.min(width, height) * 0.45;
   const initialRotation = [75, -10, 0];
   let currentScale = initialScale;
+
   const projection = d3.geoOrthographic()
     .scale(currentScale)
     .translate([width / 2, height / 2])
     .rotate([...initialRotation])
     .clipAngle(90);
+
   const pathGenerator = d3.geoPath().projection(projection);
+
   const svg = d3.select('#map-container')
     .append('svg')
     .attr('viewBox', `0 0 ${width} ${height}`)
     .attr('preserveAspectRatio', 'xMidYMid meet');
+
   const defs = svg.append('defs');
+
   // Gradiente esférico
   const globeGradient = defs.append('radialGradient')
     .attr('id', 'globe-shading')
     .attr('cx', '45%')
     .attr('cy', '40%')
     .attr('r', '60%');
+
   globeGradient.append('stop').attr('offset', '0%').attr('stop-color', '#172847');
   globeGradient.append('stop').attr('offset', '70%').attr('stop-color', '#091122');
   globeGradient.append('stop').attr('offset', '100%').attr('stop-color', '#050a14');
+
   const sphereCircle = svg.append('circle')
     .attr('cx', width / 2)
     .attr('cy', height / 2)
@@ -345,7 +364,9 @@ async function renderMap() {
     .attr('stroke', '#38bdf8')
     .attr('stroke-opacity', 0.25)
     .attr('stroke-width', 1.5);
+
   const g = svg.append('g').attr('class', 'globe-features');
+
   const graticule = d3.geoGraticule10();
   const graticulePath = g.append('path')
     .datum(graticule)
@@ -354,7 +375,9 @@ async function renderMap() {
     .attr('fill', 'none')
     .attr('stroke', 'rgba(255, 255, 255, 0.05)')
     .attr('stroke-width', 0.5);
+
   let countriesPaths;
+
   function updateGlobe() {
     sphereCircle.attr('r', projection.scale());
     pathGenerator.projection(projection);
@@ -363,6 +386,7 @@ async function renderMap() {
       countriesPaths.attr('d', pathGenerator);
     }
   }
+
   // Interacción de Arrastre 360°
   let dragStartPos = null;
   let dragStartRotation = null;
@@ -381,6 +405,7 @@ async function renderMap() {
       projection.rotate([newLambda, newPhi, 0]);
       updateGlobe();
     });
+
   // Zoom
   const zoom = d3.zoom()
     .scaleExtent([0.5, 4.0])
@@ -389,24 +414,30 @@ async function renderMap() {
       projection.scale(newScale);
       updateGlobe();
     });
+
   svg.call(drag);
   svg.call(zoom);
+
   document.getElementById('btn-zoom-in').addEventListener('click', () => {
     projection.scale(projection.scale() * 1.3);
     updateGlobe();
   });
+
   document.getElementById('btn-zoom-out').addEventListener('click', () => {
     projection.scale(projection.scale() * 0.77);
     updateGlobe();
   });
+
   document.getElementById('btn-reset-view').addEventListener('click', () => {
     projection.scale(initialScale);
     projection.rotate([...initialRotation]);
     updateGlobe();
   });
+
   try {
     const worldData = await d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json');
     const countries = topojson.feature(worldData, worldData.objects.countries).features;
+
     countriesPaths = g.selectAll('path.country')
       .data(countries)
       .enter()
@@ -439,6 +470,7 @@ async function renderMap() {
         const iso = ISO_BANDERAS[countryName];
         const zonaInfo = ZONAS_GEOGRAFICAS[countryName];
         const flagSrc = (typeof FLAGS_BASE64 !== 'undefined' && FLAGS_BASE64[iso]) ? FLAGS_BASE64[iso] : `flags/${iso}.png`;
+
         tooltip.style.display = 'block';
         if (isEligible) {
           tooltip.innerHTML = `
@@ -472,73 +504,68 @@ async function renderMap() {
     container.innerHTML = `<div style="padding: 40px; color: #ef4444; text-align: center;">Error al cargar mapa.</div>`;
   }
 }
+
 // ==========================================
-// SELECCIÓN DE PAÍS Y ESTADOS DE INTERFAZ
+// SELECCIÓN DE PAÍS INDIVIDUAL
 // ==========================================
-async function selectCountry(countryName, element) {
-  // Solicita y conecta el puerto serie del Arduino con el clic del país
-  await conectarArduinoAutomatico();
+function selectCountry(countryName, element) {
   selectedCountry = countryName;
-  // Detener animación previa si la hubiera
+
   if (chartAnimationId) {
     cancelAnimationFrame(chartAnimationId);
     chartAnimationId = null;
   }
+
   // Resaltado en mapa
   d3.selectAll('.country').classed('country-selected', false);
   if (element) {
     d3.select(element).classed('country-selected', true);
   } else {
-    // Si se seleccionó desde el Top 5
     d3.selectAll('.country').filter(function() {
       return d3.select(this).attr('data-name') === countryName;
     }).classed('country-selected', true);
   }
-  // Actualizar títulos
+
   const displayName = NOMBRES_ESP[countryName] || countryName;
   selectedCountryNameEl.textContent = displayName;
-  // Estado por defecto: Opción unificada Renovables vs Fósiles activada
+
   if (checkMacroUnified) checkMacroUnified.checked = true;
   document.querySelectorAll('.source-checkbox').forEach(cb => cb.checked = false);
   optionsPanel.style.display = 'none';
-  // Dejar preparado el lienzo del gráfico con su estado listo
+
   chartPlaceholder.style.display = 'none';
   chartContainer.style.display = 'block';
   chartPlaybackBar.style.display = 'flex';
   stopSonification();
-  // Mostrar país seleccionado en la parte superior derecha del header
+
   if (headerCountryBadge) headerCountryBadge.style.display = 'block';
-  // Cambiar vista del panel
+
+  // Ocultar modo dual si estuviera activo
+  viewDualCompare.style.display = 'none';
   viewIntro.classList.remove('active');
   viewCountrySelected.classList.add('active');
   actionFeedback.style.display = 'none';
-  // No iniciar automáticamente: preparar el gráfico y dejar listo para que el usuario presione "Comenzar"
-  if (window.autoStartTimeout) {
-    clearTimeout(window.autoStartTimeout);
-    window.autoStartTimeout = null;
-  }
+
   prepareChartPreview();
 }
-// Botón: Volver a la breve explicación
+
+// Volver al modo introductorio
 btnBackToIntro.addEventListener('click', () => {
-  if (window.autoStartTimeout) {
-    clearTimeout(window.autoStartTimeout);
-    window.autoStartTimeout = null;
-  }
   if (chartAnimationId) {
     cancelAnimationFrame(chartAnimationId);
     chartAnimationId = null;
   }
   stopSonification();
-  enviarComandoArduino('STOP');
   selectedCountry = null;
   d3.selectAll('.country').classed('country-selected', false);
   if (headerCountryBadge) headerCountryBadge.style.display = 'none';
   viewCountrySelected.classList.remove('active');
+  viewDualCompare.style.display = 'none';
   viewIntro.classList.add('active');
   actionFeedback.style.display = 'none';
 });
-// Toggle de sonido
+
+// Toggle sonido
 if (soundIndicator) {
   soundIndicator.addEventListener('click', () => {
     isAudioEnabled = !isAudioEnabled;
@@ -547,62 +574,61 @@ if (soundIndicator) {
     if (!isAudioEnabled) stopSonification();
   });
 }
-// Botón: Seleccionar opciones (Toggle menú de filtros)
+
 btnSelectOptions.addEventListener('click', () => {
   const isHidden = optionsPanel.style.display === 'none';
   optionsPanel.style.display = isHidden ? 'flex' : 'none';
 });
+
 if (checkMacroUnified) {
-  checkMacroUnified.addEventListener('change', (e) => {
-    showFossil = e.target.checked;
-    showRenew = e.target.checked;
-    const legF = document.getElementById('legend-fossil');
-    const legR = document.getElementById('legend-renew');
-    if (legF) legF.style.opacity = showFossil ? '1' : '0.3';
-    if (legR) legR.style.opacity = showRenew ? '1' : '0.3';
+  checkMacroUnified.addEventListener('change', () => {
     if (!chartAnimationId && selectedCountry) prepareChartPreview();
   });
 }
+
 document.querySelectorAll('.source-checkbox').forEach(cb => {
   cb.addEventListener('change', () => {
     if (!chartAnimationId && selectedCountry) prepareChartPreview();
   });
 });
+
 document.querySelectorAll('input[name="metric-type"]').forEach((radio) => {
   radio.addEventListener('change', (e) => {
     currentMetric = e.target.value;
     if (!chartAnimationId && selectedCountry) prepareChartPreview();
   });
 });
-// Botón: Comenzar (Inicia la revelación horizontal continua año a año)
+
 btnStart.addEventListener('click', () => {
   startChartRace();
 });
+
 btnReplay.addEventListener('click', () => {
   startChartRace();
 });
-// Función para preparar y dibujar el gráfico en estado inicial (Año 2000 o estático) al seleccionar país
+
+// Preparar gráfico estático previo a animación individual
 function prepareChartPreview() {
   if (!selectedCountry || !energyData[selectedCountry]) return;
   const countryData = energyData[selectedCountry];
   const years = countryData.years;
   if (!years || years.length === 0) return;
-  // Mostrar el contenedor de gráfico y la barra de controles
+
   chartPlaceholder.style.display = 'none';
   chartContainer.style.display = 'block';
   chartPlaybackBar.style.display = 'flex';
   optionsPanel.style.display = 'none';
-  // Actualizar título informativo del gráfico
+
   if (chartTitle) {
     const espName = NOMBRES_ESP[selectedCountry] || selectedCountry;
     const metricDesc = currentMetric === 'share' ? 'Participación (%)' : 'Generación (TWh)';
     chartTitle.textContent = `Evolución Anual en ${espName} (${metricDesc})`;
   }
-  // Título del año inicial
+
   chartYearBadge.textContent = `Año ${years[0]}`;
   playbackProgress.style.width = '0%';
   playbackStatus.textContent = 'Listo para reproducir. Presiona "Comenzar"';
-  // Preparar series a dibujar
+
   const seriesToDraw = [];
   if (checkMacroUnified && checkMacroUnified.checked) {
     if (countryData.sources && countryData.sources['Renewables']) {
@@ -640,6 +666,7 @@ function prepareChartPreview() {
       });
     }
   }
+
   document.querySelectorAll('.source-checkbox:checked').forEach(cb => {
     const sKey = cb.getAttribute('data-source');
     if (countryData.sources && countryData.sources[sKey]) {
@@ -653,44 +680,56 @@ function prepareChartPreview() {
       });
     }
   });
+
   if (seriesToDraw.length === 0) return;
+
   const width = chartContainer.clientWidth || 550;
   const height = 310;
   const margin = { top: 22, right: 35, bottom: 48, left: 68 };
   chartContainer.innerHTML = '';
+
   const svg = d3.select('#chart-container')
     .append('svg')
     .attr('viewBox', `0 0 ${width} ${height}`)
     .attr('preserveAspectRatio', 'xMidYMid meet');
+
   const innerW = width - margin.left - margin.right;
   const innerH = height - margin.top - margin.bottom;
   const minYear = years[0];
   const maxYear = years[years.length - 1];
+
   const xScale = d3.scaleLinear()
     .domain([minYear, maxYear])
     .range([0, innerW]);
+
   let allVals = [];
   seriesToDraw.forEach(s => {
     allVals = allVals.concat(s.values);
   });
   const maxVal = d3.max(allVals) || 10;
   const yMax = currentMetric === 'share' ? 100 : Math.max(10, maxVal * 1.15);
+
   const yScale = d3.scaleLinear()
     .domain([0, yMax])
     .range([innerH, 0]);
+
   const g = svg.append('g')
     .attr('transform', `translate(${margin.left},${margin.top})`);
+
   const xAxis = d3.axisBottom(xScale).ticks(6).tickFormat(d3.format('d'));
   const yAxis = d3.axisLeft(yScale).ticks(5).tickFormat((d) => (currentMetric === 'share' ? `${d}%` : `${d}`));
+
   g.append('g')
     .attr('class', 'axis axis-x')
     .attr('transform', `translate(0,${innerH})`)
     .call(xAxis)
     .attr('color', '#64748b');
+
   g.append('g')
     .attr('class', 'axis axis-y')
     .call(yAxis)
     .attr('color', '#64748b');
+
   g.append('text')
     .attr('class', 'axis-title axis-title-x')
     .attr('x', innerW / 2)
@@ -700,9 +739,11 @@ function prepareChartPreview() {
     .attr('font-size', '11px')
     .attr('font-weight', '600')
     .text('Línea de Tiempo (Años 2000 — 2025)');
+
   const yTitleText = currentMetric === 'share'
     ? 'Participación en la Matriz Eléctrica (% del total)'
     : 'Generación Eléctrica Anual (TWh = Teravatios-hora)';
+
   g.append('text')
     .attr('class', 'axis-title axis-title-y')
     .attr('transform', 'rotate(-90)')
@@ -713,11 +754,12 @@ function prepareChartPreview() {
     .attr('font-size', '11px')
     .attr('font-weight', '600')
     .text(yTitleText);
+
   g.append('g')
     .attr('class', 'grid')
     .call(d3.axisLeft(yScale).ticks(5).tickSize(-innerW).tickFormat(''))
     .attr('stroke', 'rgba(255,255,255,0.06)');
-  // Clip Path inicial en 0
+
   const clipId = `clip-race-preview`;
   svg.append('defs')
     .append('clipPath')
@@ -728,24 +770,29 @@ function prepareChartPreview() {
     .attr('y', 0)
     .attr('width', 0)
     .attr('height', innerH);
+
   const chartArea = g.append('g').attr('clip-path', `url(#${clipId})`);
+
   seriesToDraw.forEach(s => {
     const lineGen = d3.line()
       .x((d, i) => xScale(years[i]))
       .y((d) => yScale(d))
       .curve(d3.curveMonotoneX);
+
     if (s.isMacro) {
       const areaGen = d3.area()
         .x((d, i) => xScale(years[i]))
         .y0(innerH)
         .y1((d) => yScale(d))
         .curve(d3.curveMonotoneX);
+
       chartArea.append('path')
         .datum(s.values)
         .attr('d', areaGen)
         .attr('fill', s.color)
         .attr('fill-opacity', 0.12);
     }
+
     chartArea.append('path')
       .datum(s.values)
       .attr('d', lineGen)
@@ -753,7 +800,7 @@ function prepareChartPreview() {
       .attr('stroke', s.color)
       .attr('stroke-width', s.isMacro ? 3.0 : 2.2);
   });
-  // Cursor vertical animado en posición inicial 0
+
   g.append('line')
     .attr('y1', 0)
     .attr('y2', innerH)
@@ -762,7 +809,7 @@ function prepareChartPreview() {
     .attr('stroke-dasharray', '3 3')
     .attr('x1', 0)
     .attr('x2', 0);
-  // Puntos guía iniciales
+
   seriesToDraw.forEach(s => {
     g.append('circle')
       .attr('r', s.isMacro ? 5.5 : 4)
@@ -773,8 +820,9 @@ function prepareChartPreview() {
       .attr('stroke-width', 1);
   });
 }
+
 // ==========================================
-// GRÁFICO DINÁMICO: REVELACIÓN HORIZONTAL FLUIDA
+// GRÁFICO DINÁMICO INDIVIDUAL: REVELACIÓN FLUIDA
 // ==========================================
 function startChartRace() {
   if (!selectedCountry || !energyData[selectedCountry]) {
@@ -784,20 +832,19 @@ function startChartRace() {
   const countryData = energyData[selectedCountry];
   const years = countryData.years;
   if (!years || years.length === 0) return;
-  // Mostrar contenedor de gráfico y playback bar
+
   chartPlaceholder.style.display = 'none';
   chartContainer.style.display = 'block';
   chartPlaybackBar.style.display = 'flex';
   optionsPanel.style.display = 'none';
-  // Actualizar título informativo del gráfico
+
   if (chartTitle) {
     const espName = NOMBRES_ESP[selectedCountry] || selectedCountry;
     const metricDesc = currentMetric === 'share' ? 'Participación (%)' : 'Generación (TWh)';
     chartTitle.textContent = `Evolución Anual en ${espName} (${metricDesc})`;
   }
-  // Preparar series a dibujar según las opciones seleccionadas
+
   const seriesToDraw = [];
-  // 1. Si está marcada la opción macro unificada Renovables vs Fósiles
   if (checkMacroUnified && checkMacroUnified.checked) {
     if (countryData.sources && countryData.sources['Renewables']) {
       seriesToDraw.push({
@@ -834,7 +881,7 @@ function startChartRace() {
       });
     }
   }
-  // 2. Fuentes individuales marcadas
+
   document.querySelectorAll('.source-checkbox:checked').forEach(cb => {
     const sKey = cb.getAttribute('data-source');
     if (countryData.sources && countryData.sources[sKey]) {
@@ -848,51 +895,59 @@ function startChartRace() {
       });
     }
   });
+
   if (seriesToDraw.length === 0) {
     alert('Por favor selecciona al menos una opción en "Seleccionar opciones".');
     return;
   }
-  // Dimensiones ampliadas para mejor visualización y títulos de ejes legibles
+
   const width = chartContainer.clientWidth || 550;
   const height = 310;
   const margin = { top: 22, right: 35, bottom: 48, left: 68 };
   chartContainer.innerHTML = '';
+
   const svg = d3.select('#chart-container')
     .append('svg')
     .attr('viewBox', `0 0 ${width} ${height}`)
     .attr('preserveAspectRatio', 'xMidYMid meet');
+
   const innerW = width - margin.left - margin.right;
   const innerH = height - margin.top - margin.bottom;
   const minYear = years[0];
   const maxYear = years[years.length - 1];
+
   const xScale = d3.scaleLinear()
     .domain([minYear, maxYear])
     .range([0, innerW]);
-  // Encontrar valor máximo para el eje Y
+
   let allVals = [];
   seriesToDraw.forEach(s => {
     allVals = allVals.concat(s.values);
   });
   const maxVal = d3.max(allVals) || 10;
   const yMax = currentMetric === 'share' ? 100 : Math.max(10, maxVal * 1.15);
+
   const yScale = d3.scaleLinear()
     .domain([0, yMax])
     .range([innerH, 0]);
+
   const g = svg.append('g')
     .attr('transform', `translate(${margin.left},${margin.top})`);
-  // Ejes X e Y
+
   const xAxis = d3.axisBottom(xScale).ticks(6).tickFormat(d3.format('d'));
   const yAxis = d3.axisLeft(yScale).ticks(5).tickFormat((d) => (currentMetric === 'share' ? `${d}%` : `${d}`));
+
   g.append('g')
     .attr('class', 'axis axis-x')
     .attr('transform', `translate(0,${innerH})`)
     .call(xAxis)
     .attr('color', '#64748b');
+
   g.append('g')
     .attr('class', 'axis axis-y')
     .call(yAxis)
     .attr('color', '#64748b');
-  // Título del Eje X: Años (Cápsula 14 & 15: claridad de escalas y variables)
+
   g.append('text')
     .attr('class', 'axis-title axis-title-x')
     .attr('x', innerW / 2)
@@ -902,10 +957,11 @@ function startChartRace() {
     .attr('font-size', '11px')
     .attr('font-weight', '600')
     .text('Línea de Tiempo (Años 2000 — 2025)');
-  // Título del Eje Y: Métrica cuantitativa con definición precisa
+
   const yTitleText = currentMetric === 'share'
     ? 'Participación en la Matriz Eléctrica (% del total)'
     : 'Generación Eléctrica Anual (TWh = Teravatios-hora)';
+
   g.append('text')
     .attr('class', 'axis-title axis-title-y')
     .attr('transform', 'rotate(-90)')
@@ -916,12 +972,12 @@ function startChartRace() {
     .attr('font-size', '11px')
     .attr('font-weight', '600')
     .text(yTitleText);
-  // Cuadrícula horizontal sutil
+
   g.append('g')
     .attr('class', 'grid')
     .call(d3.axisLeft(yScale).ticks(5).tickSize(-innerW).tickFormat(''))
     .attr('stroke', 'rgba(255,255,255,0.06)');
-  // Clip Path para revelación horizontal continua
+
   const clipId = `clip-race-${Date.now()}`;
   svg.append('defs')
     .append('clipPath')
@@ -932,25 +988,29 @@ function startChartRace() {
     .attr('y', 0)
     .attr('width', 0)
     .attr('height', innerH);
+
   const chartArea = g.append('g').attr('clip-path', `url(#${clipId})`);
-  // Líneas y áreas para cada serie
+
   seriesToDraw.forEach(s => {
     const lineGen = d3.line()
       .x((d, i) => xScale(years[i]))
       .y((d) => yScale(d))
       .curve(d3.curveMonotoneX);
+
     if (s.isMacro) {
       const areaGen = d3.area()
         .x((d, i) => xScale(years[i]))
         .y0(innerH)
         .y1((d) => yScale(d))
         .curve(d3.curveMonotoneX);
+
       chartArea.append('path')
         .datum(s.values)
         .attr('d', areaGen)
         .attr('fill', s.color)
         .attr('fill-opacity', 0.12);
     }
+
     chartArea.append('path')
       .datum(s.values)
       .attr('d', lineGen)
@@ -958,7 +1018,7 @@ function startChartRace() {
       .attr('stroke', s.color)
       .attr('stroke-width', s.isMacro ? 3.0 : 2.2);
   });
-  // Cursor vertical animado
+
   const cursorLine = g.append('line')
     .attr('y1', 0)
     .attr('y2', innerH)
@@ -967,7 +1027,7 @@ function startChartRace() {
     .attr('stroke-dasharray', '3 3')
     .attr('x1', 0)
     .attr('x2', 0);
-  // Puntos guía para cada serie trazada
+
   const guideDots = seriesToDraw.map(s => {
     return g.append('circle')
       .attr('r', s.isMacro ? 5.5 : 4)
@@ -975,48 +1035,548 @@ function startChartRace() {
       .attr('stroke', '#ffffff')
       .attr('stroke-width', 1);
   });
-  // Activar sonificación acústica al arrancar la carrera (Tono: Grave = fósil, Agudo = limpio)
+
   startSonification();
-  // Animación continua y fluida (~7.6 segundos)
+
   const duration = 7600;
   let startTime = null;
+
   if (chartAnimationId) cancelAnimationFrame(chartAnimationId);
   playbackStatus.textContent = 'Revelando generación año a año...';
+
   function animate(timestamp) {
     if (!startTime) startTime = timestamp;
     const elapsed = timestamp - startTime;
     const progress = Math.min(elapsed / duration, 1);
     const currentX = innerW * progress;
+
     svg.select('#clip-rect').attr('width', currentX);
+
     const currentYearVal = minYear + (maxYear - minYear) * progress;
     const displayYear = Math.min(Math.round(currentYearVal), maxYear);
     chartYearBadge.textContent = `Año ${displayYear}`;
     cursorLine.attr('x1', currentX).attr('x2', currentX);
+
     const idx = Math.min(Math.floor(progress * (years.length - 1)), years.length - 1);
     seriesToDraw.forEach((s, i) => {
       guideDots[i].attr('cx', currentX).attr('cy', yScale(s.values[idx]));
     });
-    // Actualizar sonificación acústica (1 solo dato: participación renovable vs fósil)
+
     const currentRenShare = (countryData.sources && countryData.sources['Renewables'] && countryData.sources['Renewables'].share[idx]) || (countryData.renew_share && countryData.renew_share[idx]) || 0;
     updateSonification(currentRenShare);
-    // Actuador Físico Arduino:
-    // Si ganan las energías limpias (>= 50%), encendemos el LED ('1')
-    // Si ganan los fósiles (< 50%), apagamos el LED ('0')
-    // Actuador Físico Arduino (Aerogenerador 360° MG90S + LED):
-    const shareVal = Math.round(currentRenShare);
-    enviarComandoArduino(shareVal.toString());
+
     playbackProgress.style.width = `${progress * 100}%`;
+
     if (progress < 1) {
       chartAnimationId = requestAnimationFrame(animate);
     } else {
       playbackStatus.textContent = 'Carrera completada ✓';
       chartAnimationId = null;
       stopSonification();
-      enviarComandoArduino('STOP');
     }
   }
+
   chartAnimationId = requestAnimationFrame(animate);
 }
+
+// ==========================================
+// MODO COMPARACIÓN TANGIBLE (CELULAR + 2 RANURAS)
+// ==========================================
+
+// Inicializar conexión PeerJS para que el celular se enlace
+function initPeerConnection() {
+  if (peerInstance) return;
+
+  const randomRoom = 'descarbo-' + Math.floor(1000 + Math.random() * 9000);
+  currentPeerRoomId = randomRoom;
+
+  try {
+    peerInstance = new Peer(randomRoom);
+
+    peerInstance.on('open', (id) => {
+      console.log('✓ Servidor PeerJS listo con ID de sala:', id);
+      renderQRCode(id);
+    });
+
+    peerInstance.on('connection', (conn) => {
+      peerConnection = conn;
+      console.log('✓ Celular conectado exitosamente vía WebRTC!');
+
+      // Cerrar modal QR y pasar a la interfaz de doble comparación
+      if (mobileQrModal) mobileQrModal.style.display = 'none';
+      activarModoComparacionDual();
+
+      conn.on('data', (data) => {
+        handleMobileMessage(data);
+      });
+
+      conn.on('close', () => {
+        console.warn('Conexión con el celular cerrada.');
+      });
+    });
+
+    peerInstance.on('error', (err) => {
+      console.error('Error en PeerJS:', err);
+    });
+  } catch (err) {
+    console.error('No se pudo inicializar PeerJS:', err);
+  }
+}
+
+// Generar código QR apuntando a mobile.html con ?room=ID
+function renderQRCode(roomId) {
+  if (!qrcodeCanvas) return;
+  qrcodeCanvas.innerHTML = '';
+
+  const mobileUrl = `${window.location.origin}${window.location.pathname.replace('index.html', '')}mobile.html?room=${roomId}`;
+  
+  if (qrDirectLink) {
+    qrDirectLink.href = mobileUrl;
+    qrDirectLink.textContent = mobileUrl;
+  }
+
+  try {
+    new QRCode(qrcodeCanvas, {
+      text: mobileUrl,
+      width: 200,
+      height: 200,
+      colorDark: '#070d18',
+      colorLight: '#ffffff',
+      correctLevel: QRCode.CorrectLevel.M
+    });
+  } catch (err) {
+    console.warn('QRCode library fallback:', err);
+  }
+}
+
+// Botón para abrir modal QR
+if (btnOpenMobileModal) {
+  btnOpenMobileModal.addEventListener('click', () => {
+    initPeerConnection();
+    mobileQrModal.style.display = 'flex';
+  });
+}
+
+if (btnCloseQrModal) {
+  btnCloseQrModal.addEventListener('click', () => {
+    mobileQrModal.style.display = 'none';
+  });
+}
+
+// Cambiar la vista de la pantalla del PC al modo de dos ranuras
+function activarModoComparacionDual() {
+  viewIntro.classList.remove('active');
+  viewCountrySelected.classList.remove('active');
+  viewDualCompare.style.display = 'block';
+
+  if (headerCountryBadge) headerCountryBadge.style.display = 'none';
+  d3.selectAll('.country').classed('country-selected', false);
+
+  if (chartAnimationId) {
+    cancelAnimationFrame(chartAnimationId);
+    chartAnimationId = null;
+  }
+  stopSonification();
+}
+
+// Volver al mapa individual desde el modo comparativo
+if (btnBackFromCompare) {
+  btnBackFromCompare.addEventListener('click', () => {
+    if (compareAnimationId) {
+      cancelAnimationFrame(compareAnimationId);
+      compareAnimationId = null;
+    }
+    stopSonification();
+    viewDualCompare.style.display = 'none';
+    viewIntro.classList.add('active');
+  });
+}
+
+// Manejar los mensajes entrantes desde el celular
+function handleMobileMessage(msg) {
+  if (!msg || !msg.type) return;
+
+  if (msg.type === 'SELECT_COUNTRY_1') {
+    const rawCountry = msg.country.key;
+    const countryName = normalizarNombre(rawCountry);
+    compareCountry1 = countryName;
+    actualizarSlotUI(1, countryName, msg.country.zone);
+    verificarListosParaComparar();
+  } else if (msg.type === 'SELECT_COUNTRY_2') {
+    const rawCountry = msg.country.key;
+    const countryName = normalizarNombre(rawCountry);
+    compareCountry2 = countryName;
+    actualizarSlotUI(2, countryName, msg.country.zone);
+    verificarListosParaComparar();
+  } else if (msg.type === 'START_RACE') {
+    iniciarCarreraComparativa();
+  }
+}
+
+// Actualizar visualmente la ranura del país 1 o país 2
+function actualizarSlotUI(slotNum, countryName, fallbackZone) {
+  const espName = NOMBRES_ESP[countryName] || countryName;
+  const iso = ISO_BANDERAS[countryName];
+  const flagSrc = (typeof FLAGS_BASE64 !== 'undefined' && FLAGS_BASE64[iso]) ? FLAGS_BASE64[iso] : `flags/${iso}.png`;
+  const zonaInfo = ZONAS_GEOGRAFICAS[countryName];
+  const zoneLabel = zonaInfo ? zonaInfo.zona : (fallbackZone || 'América');
+
+  if (slotNum === 1) {
+    pcName1.textContent = espName;
+    pcZone1.textContent = `📍 ${zoneLabel}`;
+    pcFlag1.innerHTML = `<img src="${flagSrc}" alt="${espName}" style="width: 32px; height: 22px; border-radius: 4px; object-fit: cover; box-shadow: 0 2px 6px rgba(0,0,0,0.4);" />`;
+    pcSlot1.classList.add('slot-filled');
+
+    // Resaltar en el globo terráqueo
+    d3.selectAll('.country').filter(function() {
+      return d3.select(this).attr('data-name') === countryName;
+    }).classed('country-selected', true);
+  } else {
+    pcName2.textContent = espName;
+    pcZone2.textContent = `📍 ${zoneLabel}`;
+    pcFlag2.innerHTML = `<img src="${flagSrc}" alt="${espName}" style="width: 32px; height: 22px; border-radius: 4px; object-fit: cover; box-shadow: 0 2px 6px rgba(0,0,0,0.4);" />`;
+    pcSlot2.classList.add('slot-filled-2');
+
+    d3.selectAll('.country').filter(function() {
+      return d3.select(this).attr('data-name') === countryName;
+    }).classed('country-selected', true);
+  }
+}
+
+// Verificar si ambos países están escaneados para preparar el gráfico
+function verificarListosParaComparar() {
+  if (compareCountry1 && compareCountry2) {
+    btnStartCompare.style.display = 'inline-flex';
+    prepararGraficoComparativoPreview();
+  }
+}
+
+if (btnStartCompare) {
+  btnStartCompare.addEventListener('click', () => {
+    iniciarCarreraComparativa();
+  });
+}
+
+if (btnReplayCompare) {
+  btnReplayCompare.addEventListener('click', () => {
+    iniciarCarreraComparativa();
+  });
+}
+
+// Preparar vista previa estática del gráfico comparativo dual
+function prepararGraficoComparativoPreview() {
+  if (!compareCountry1 || !compareCountry2) return;
+  const d1 = energyData[compareCountry1];
+  const d2 = energyData[compareCountry2];
+  if (!d1 || !d2) return;
+
+  comparePlaceholder.style.display = 'none';
+  compareChartContainer.style.display = 'block';
+  comparePlaybackBar.style.display = 'flex';
+
+  const years = d1.years || [2000, 2005, 2010, 2015, 2020, 2024, 2025];
+  compareYearBadge.textContent = `Año ${years[0]}`;
+  comparePlaybackProgress.style.width = '0%';
+  comparePlaybackStatus.textContent = 'Ambos países listos. Presiona "Iniciar Carrera Dual" o pulsa en tu celular.';
+
+  dibujarGraficoComparativoDual(0, false);
+}
+
+// Dibujar la escena comparativa con D3
+function dibujarGraficoComparativoDual(progressPercent, isStaticPreview = true) {
+  const d1 = energyData[compareCountry1];
+  const d2 = energyData[compareCountry2];
+  if (!d1 || !d2) return;
+
+  const years = d1.years || [2000, 2005, 2010, 2015, 2020, 2024, 2025];
+  const width = compareChartContainer.clientWidth || 550;
+  const height = 310;
+  const margin = { top: 24, right: 40, bottom: 48, left: 68 };
+
+  compareChartContainer.innerHTML = '';
+
+  const svg = d3.select('#compare-chart-container')
+    .append('svg')
+    .attr('viewBox', `0 0 ${width} ${height}`)
+    .attr('preserveAspectRatio', 'xMidYMid meet');
+
+  const innerW = width - margin.left - margin.right;
+  const innerH = height - margin.top - margin.bottom;
+
+  const minYear = years[0];
+  const maxYear = years[years.length - 1];
+
+  const xScale = d3.scaleLinear()
+    .domain([minYear, maxYear])
+    .range([0, innerW]);
+
+  // En comparación el eje Y va de 0% a 100% de participación limpia vs fósil
+  const yScale = d3.scaleLinear()
+    .domain([0, 100])
+    .range([innerH, 0]);
+
+  const g = svg.append('g')
+    .attr('transform', `translate(${margin.left},${margin.top})`);
+
+  // Ejes
+  const xAxis = d3.axisBottom(xScale).ticks(6).tickFormat(d3.format('d'));
+  const yAxis = d3.axisLeft(yScale).ticks(5).tickFormat((d) => `${d}%`);
+
+  g.append('g')
+    .attr('class', 'axis axis-x')
+    .attr('transform', `translate(0,${innerH})`)
+    .call(xAxis)
+    .attr('color', '#64748b');
+
+  g.append('g')
+    .attr('class', 'axis axis-y')
+    .call(yAxis)
+    .attr('color', '#64748b');
+
+  g.append('text')
+    .attr('class', 'axis-title axis-title-x')
+    .attr('x', innerW / 2)
+    .attr('y', innerH + 38)
+    .attr('text-anchor', 'middle')
+    .attr('fill', '#94a3b8')
+    .attr('font-size', '11px')
+    .attr('font-weight', '600')
+    .text('Línea de Tiempo (2000 — 2025)');
+
+  g.append('text')
+    .attr('class', 'axis-title axis-title-y')
+    .attr('transform', 'rotate(-90)')
+    .attr('x', -innerH / 2)
+    .attr('y', -50)
+    .attr('text-anchor', 'middle')
+    .attr('fill', '#94a3b8')
+    .attr('font-size', '11px')
+    .attr('font-weight', '600')
+    .text('Participación Renovable vs Fósil (%)');
+
+  // Cuadrícula y línea de referencia del 50%
+  g.append('g')
+    .attr('class', 'grid')
+    .call(d3.axisLeft(yScale).ticks(5).tickSize(-innerW).tickFormat(''))
+    .attr('stroke', 'rgba(255,255,255,0.06)');
+
+  // Línea 50%
+  g.append('line')
+    .attr('x1', 0)
+    .attr('x2', innerW)
+    .attr('y1', yScale(50))
+    .attr('y2', yScale(50))
+    .attr('stroke', 'rgba(255,255,255,0.18)')
+    .attr('stroke-dasharray', '4 4');
+
+  g.append('text')
+    .attr('x', innerW - 5)
+    .attr('y', yScale(50) - 6)
+    .attr('text-anchor', 'end')
+    .attr('fill', '#64748b')
+    .attr('font-size', '10px')
+    .text('50% Umbral de Transición');
+
+  // Valores de los dos países
+  const ren1 = (d1.sources && d1.sources['Renewables'] && d1.sources['Renewables'].share) || d1.renew_share || [];
+  const fos1 = (d1.sources && d1.sources['Fossil'] && d1.sources['Fossil'].share) || d1.fossil_share || [];
+
+  const ren2 = (d2.sources && d2.sources['Renewables'] && d2.sources['Renewables'].share) || d2.renew_share || [];
+  const fos2 = (d2.sources && d2.sources['Fossil'] && d2.sources['Fossil'].share) || d2.fossil_share || [];
+
+  // Clip Path animado
+  const clipId = `compare-clip-path`;
+  svg.append('defs')
+    .append('clipPath')
+    .attr('id', clipId)
+    .append('rect')
+    .attr('id', 'compare-clip-rect')
+    .attr('x', 0)
+    .attr('y', 0)
+    .attr('width', innerW * progressPercent)
+    .attr('height', innerH);
+
+  const chartArea = g.append('g').attr('clip-path', `url(#${clipId})`);
+
+  // Líneas País 1 (Sólidas)
+  const lineRen1 = d3.line()
+    .x((d, i) => xScale(years[i]))
+    .y((d) => yScale(d))
+    .curve(d3.curveMonotoneX);
+
+  const lineFos1 = d3.line()
+    .x((d, i) => xScale(years[i]))
+    .y((d) => yScale(d))
+    .curve(d3.curveMonotoneX);
+
+  // País 1 Renovables (Verde Sólida)
+  chartArea.append('path')
+    .datum(ren1)
+    .attr('d', lineRen1)
+    .attr('fill', 'none')
+    .attr('stroke', '#10b981')
+    .attr('stroke-width', 3.2);
+
+  // País 1 Fósil (Roja Sólida)
+  chartArea.append('path')
+    .datum(fos1)
+    .attr('d', lineFos1)
+    .attr('fill', 'none')
+    .attr('stroke', '#ef4444')
+    .attr('stroke-width', 2.2)
+    .attr('stroke-opacity', 0.85);
+
+  // Líneas País 2 (Punteadas / Trazos Distintivos)
+  const lineRen2 = d3.line()
+    .x((d, i) => xScale(years[i]))
+    .y((d) => yScale(d))
+    .curve(d3.curveMonotoneX);
+
+  const lineFos2 = d3.line()
+    .x((d, i) => xScale(years[i]))
+    .y((d) => yScale(d))
+    .curve(d3.curveMonotoneX);
+
+  // País 2 Renovables (Cian / Verde Lima con guiones)
+  chartArea.append('path')
+    .datum(ren2)
+    .attr('d', lineRen2)
+    .attr('fill', 'none')
+    .attr('stroke', '#06b6d4')
+    .attr('stroke-width', 3.2)
+    .attr('stroke-dasharray', '6 3');
+
+  // País 2 Fósil (Naranja con guiones)
+  chartArea.append('path')
+    .datum(fos2)
+    .attr('d', lineFos2)
+    .attr('fill', 'none')
+    .attr('stroke', '#f97316')
+    .attr('stroke-width', 2.2)
+    .attr('stroke-dasharray', '6 3')
+    .attr('stroke-opacity', 0.85);
+
+  // Indicador de Cursor
+  const currentX = innerW * progressPercent;
+  g.append('line')
+    .attr('id', 'compare-cursor-line')
+    .attr('y1', 0)
+    .attr('y2', innerH)
+    .attr('stroke', '#38bdf8')
+    .attr('stroke-width', 1.5)
+    .attr('stroke-dasharray', '3 3')
+    .attr('x1', currentX)
+    .attr('x2', currentX);
+
+  // Guía de puntos finales o actuales
+  const idx = Math.min(Math.floor(progressPercent * (years.length - 1)), years.length - 1);
+  if (ren1.length > 0) {
+    g.append('circle')
+      .attr('id', 'compare-dot-ren1')
+      .attr('r', 5)
+      .attr('cx', currentX)
+      .attr('cy', yScale(ren1[idx]))
+      .attr('fill', '#10b981')
+      .attr('stroke', '#ffffff')
+      .attr('stroke-width', 1.5);
+  }
+  if (ren2.length > 0) {
+    g.append('circle')
+      .attr('id', 'compare-dot-ren2')
+      .attr('r', 5)
+      .attr('cx', currentX)
+      .attr('cy', yScale(ren2[idx]))
+      .attr('fill', '#06b6d4')
+      .attr('stroke', '#ffffff')
+      .attr('stroke-width', 1.5);
+  }
+}
+
+// Iniciar animación fluida de la carrera comparativa dual
+function iniciarCarreraComparativa() {
+  if (!compareCountry1 || !compareCountry2) return;
+  const d1 = energyData[compareCountry1];
+  const d2 = energyData[compareCountry2];
+  if (!d1 || !d2) return;
+
+  const years = d1.years || [2000, 2005, 2010, 2015, 2020, 2024, 2025];
+  const minYear = years[0];
+  const maxYear = years[years.length - 1];
+
+  comparePlaceholder.style.display = 'none';
+  compareChartContainer.style.display = 'block';
+  comparePlaybackBar.style.display = 'flex';
+
+  const esp1 = NOMBRES_ESP[compareCountry1] || compareCountry1;
+  const esp2 = NOMBRES_ESP[compareCountry2] || compareCountry2;
+  document.getElementById('compare-chart-title').textContent = `${esp1} (Sólida) vs ${esp2} (Punteada)`;
+
+  dibujarGraficoComparativoDual(0, false);
+
+  startSonification();
+
+  const duration = 7600;
+  let startTime = null;
+
+  if (compareAnimationId) cancelAnimationFrame(compareAnimationId);
+  comparePlaybackStatus.textContent = 'Comparando carreras de descarbonización...';
+
+  const ren1 = (d1.sources && d1.sources['Renewables'] && d1.sources['Renewables'].share) || d1.renew_share || [];
+  const ren2 = (d2.sources && d2.sources['Renewables'] && d2.sources['Renewables'].share) || d2.renew_share || [];
+
+  const width = compareChartContainer.clientWidth || 550;
+  const margin = { top: 24, right: 40, bottom: 48, left: 68 };
+  const innerW = width - margin.left - margin.right;
+  const innerH = 310 - margin.top - margin.bottom;
+  const yScale = d3.scaleLinear().domain([0, 100]).range([innerH, 0]);
+
+  function animateCompare(timestamp) {
+    if (!startTime) startTime = timestamp;
+    const elapsed = timestamp - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    const currentX = innerW * progress;
+
+    d3.select('#compare-clip-rect').attr('width', currentX);
+
+    const currentYearVal = minYear + (maxYear - minYear) * progress;
+    const displayYear = Math.min(Math.round(currentYearVal), maxYear);
+    compareYearBadge.textContent = `Año ${displayYear}`;
+
+    d3.select('#compare-cursor-line').attr('x1', currentX).attr('x2', currentX);
+
+    const idx = Math.min(Math.floor(progress * (years.length - 1)), years.length - 1);
+
+    if (ren1[idx] !== undefined) {
+      d3.select('#compare-dot-ren1').attr('cx', currentX).attr('cy', yScale(ren1[idx]));
+    }
+    if (ren2[idx] !== undefined) {
+      d3.select('#compare-dot-ren2').attr('cx', currentX).attr('cy', yScale(ren2[idx]));
+    }
+
+    // Sonificación combinada basada en el promedio o país 1
+    const avgRen = ((ren1[idx] || 0) + (ren2[idx] || 0)) / 2;
+    updateSonification(avgRen);
+
+    comparePlaybackProgress.style.width = `${progress * 100}%`;
+
+    if (progress < 1) {
+      compareAnimationId = requestAnimationFrame(animateCompare);
+    } else {
+      const fin1 = ren1[ren1.length - 1] || 0;
+      const fin2 = ren2[ren2.length - 1] || 0;
+      let ganador = 'Empate técnico';
+      if (fin1 > fin2) ganador = `Lidera ${esp1} con ${fin1.toFixed(1)}% renovable`;
+      else if (fin2 > fin1) ganador = `Lidera ${esp2} con ${fin2.toFixed(1)}% renovable`;
+
+      comparePlaybackStatus.textContent = `Carrera completada ✓ • ${ganador}`;
+      compareAnimationId = null;
+      stopSonification();
+    }
+  }
+
+  compareAnimationId = requestAnimationFrame(animateCompare);
+}
+
 // ==========================================
 // TOP 5 TRANSICIÓN EN PLANO BASE
 // ==========================================
@@ -1028,18 +1588,21 @@ function renderTop5(rankingList, isMayor) {
     const espName = NOMBRES_ESP[item.country] || item.country;
     const sign = item.diff > 0 ? '+' : '';
     const diffClass = item.diff >= 0 ? 'diff-positive' : 'diff-negative';
+
     el.innerHTML = `
       <span class="top5-rank">#${index + 1}</span>
       <span class="top5-name">${espName}</span>
       <span class="top5-diff ${diffClass}">${sign}${item.diff}%</span>
     `;
-    // Al hacer clic, selecciona automáticamente el país y lo lleva al plano interactivo
+
     el.addEventListener('click', () => {
       selectCountry(item.country, null);
     });
+
     top5List.appendChild(el);
   });
 }
+
 // ==========================================
 // TOP GENERACIÓN ELÉCTRICA (PESOS PESADOS VS MENORES)
 // ==========================================
@@ -1050,17 +1613,21 @@ function renderTopGen(rankingList, isGigantes) {
     el.className = 'top5-item';
     const espName = NOMBRES_ESP[item.country] || item.country;
     const badgeClass = isGigantes ? 'diff-positive' : 'diff-negative';
+
     el.innerHTML = `
       <span class="top5-rank">#${index + 1}</span>
       <span class="top5-name">${espName} <small style="color:#64748b;">(${item.year})</small></span>
       <span class="top5-diff ${badgeClass}">${item.gen} TWh</span>
     `;
+
     el.addEventListener('click', () => {
       selectCountry(item.country, null);
     });
+
     topGenList.appendChild(el);
   });
 }
+
 if (btnShowTopGen) {
   btnShowTopGen.addEventListener('click', () => {
     const isHidden = topGenContainer.style.display === 'none';
@@ -1071,38 +1638,45 @@ if (btnShowTopGen) {
       tabGenMenores.classList.remove('active');
     }
   });
+
   tabGenGigantes.addEventListener('click', () => {
     tabGenGigantes.classList.add('active');
     tabGenMenores.classList.remove('active');
     renderTopGen(TOP5_GIGANTES_GEN, true);
   });
+
   tabGenMenores.addEventListener('click', () => {
     tabGenMenores.classList.add('active');
     tabGenGigantes.classList.remove('active');
     renderTopGen(TOP5_MENORES_GEN, false);
   });
 }
-// Botón Top 5 Transición Renovable
-btnShowTop5.addEventListener('click', () => {
-  const isHidden = top5Container.style.display === 'none';
-  top5Container.style.display = isHidden ? 'flex' : 'none';
-  if (isHidden) {
-    renderTop5(TOP5_MAYOR, true);
+
+if (btnShowTop5) {
+  btnShowTop5.addEventListener('click', () => {
+    const isHidden = top5Container.style.display === 'none';
+    top5Container.style.display = isHidden ? 'flex' : 'none';
+    if (isHidden) {
+      renderTop5(TOP5_MAYOR, true);
+      tabTopMayor.classList.add('active');
+      tabTopMenor.classList.remove('active');
+    }
+  });
+
+  tabTopMayor.addEventListener('click', () => {
     tabTopMayor.classList.add('active');
     tabTopMenor.classList.remove('active');
-  }
-});
-tabTopMayor.addEventListener('click', () => {
-  tabTopMayor.classList.add('active');
-  tabTopMenor.classList.remove('active');
-  renderTop5(TOP5_MAYOR, true);
-});
-tabTopMenor.addEventListener('click', () => {
-  tabTopMenor.classList.add('active');
-  tabTopMayor.classList.remove('active');
-  renderTop5(TOP5_MENOR, false);
-});
-// Inicialización
+    renderTop5(TOP5_MAYOR, true);
+  });
+
+  tabTopMenor.addEventListener('click', () => {
+    tabTopMenor.classList.add('active');
+    tabTopMayor.classList.remove('active');
+    renderTop5(TOP5_MENOR, false);
+  });
+}
+
+// Inicialización de la aplicación
 window.addEventListener('DOMContentLoaded', async () => {
   await loadEnergyData();
   await renderMap();

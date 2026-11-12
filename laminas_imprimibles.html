@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Láminas de Marcadores para Impresión - Mapas de América</title>
+  <style>
+    @page {
+      size: A4 portrait;
+      margin: 12mm;
+    }
+    body {
+      font-family: Arial, sans-serif;
+      background: #f8fafc;
+      color: #0f172a;
+      margin: 0;
+      padding: 20px;
+    }
+    .print-sheet {
+      page-break-after: always;
+      background: #ffffff;
+      padding: 16px;
+      border: 1px dashed #cbd5e1;
+      border-radius: 8px;
+      margin-bottom: 24px;
+    }
+    .sheet-header {
+      border-bottom: 2px solid #0f172a;
+      padding-bottom: 8px;
+      margin-bottom: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .sheet-title {
+      font-size: 18px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+    .sheet-tag {
+      font-size: 11px;
+      background: #e2e8f0;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-weight: bold;
+    }
+    .grid-cards {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+    }
+    .country-card {
+      border: 2px solid #334155;
+      border-radius: 8px;
+      padding: 10px;
+      text-align: center;
+      background: #ffffff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      height: 170px;
+    }
+    .country-header {
+      font-size: 13px;
+      font-weight: 800;
+      margin-bottom: 4px;
+    }
+    .country-zone {
+      font-size: 10px;
+      color: #64748b;
+      margin-bottom: 6px;
+    }
+    .qr-holder {
+      width: 105px;
+      height: 105px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .card-footer {
+      font-size: 9px;
+      color: #94a3b8;
+      margin-top: 4px;
+    }
+    @media print {
+      body { background: #fff; padding: 0; }
+      .no-print { display: none; }
+      .print-sheet { border: none; margin-bottom: 0; }
+    }
+  </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+<body>
+
+  <div class="no-print" style="margin-bottom: 20px; background: #0284c7; color: white; padding: 14px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
+    <div>
+      <h2 style="margin: 0 0 4px 0;">Láminas de Marcadores para Impresión (19 Países)</h2>
+      <p style="margin: 0; font-size: 13px;">Imprime esta hoja o colócala junto a tus mapas impresos de las 3 zonas de América. La cámara del celular leerá el país seleccionado al instante.</p>
+    </div>
+    <button onclick="window.print()" style="background: #ffffff; color: #0284c7; border: none; padding: 10px 18px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px;">🖨️ Imprimir Láminas</button>
+  </div>
+
+  <!-- LÁMINA 1: NORTEAMÉRICA -->
+  <div class="print-sheet">
+    <div class="sheet-header">
+      <span class="sheet-title" style="color: #ea580c;">📍 ZONA 1: NORTEAMÉRICA (3 Países)</span>
+      <span class="sheet-tag">Lámina para recortar o pegar sobre mapa</span>
+    </div>
+    <div class="grid-cards" id="grid-norte"></div>
+  </div>
+
+  <!-- LÁMINA 2: CENTROAMÉRICA Y CARIBE -->
+  <div class="print-sheet">
+    <div class="sheet-header">
+      <span class="sheet-title" style="color: #16a34a;">📍 ZONA 2: CENTROAMÉRICA & CARIBE (6 Países)</span>
+      <span class="sheet-tag">Lámina para recortar o pegar sobre mapa</span>
+    </div>
+    <div class="grid-cards" id="grid-centro"></div>
+  </div>
+
+  <!-- LÁMINA 3: SUDAMÉRICA -->
+  <div class="print-sheet">
+    <div class="sheet-header">
+      <span class="sheet-title" style="color: #0284c7;">📍 ZONA 3: SUDAMÉRICA (10 Países)</span>
+      <span class="sheet-tag">Lámina para recortar o pegar sobre mapa</span>
+    </div>
+    <div class="grid-cards" id="grid-sur"></div>
+  </div>
+
+  <script>
+    const PAISES_DATA = [
+      // Norteamérica
+      { key: 'canada', name: 'Canadá', zone: 'Norteamérica', container: 'grid-norte' },
+      { key: 'united states', name: 'Estados Unidos', zone: 'Norteamérica', container: 'grid-norte' },
+      { key: 'mexico', name: 'México', zone: 'Norteamérica', container: 'grid-norte' },
+
+      // Centroamérica y Caribe
+      { key: 'guatemala', name: 'Guatemala', zone: 'Centroamérica y Caribe', container: 'grid-centro' },
+      { key: 'honduras', name: 'Honduras', zone: 'Centroamérica y Caribe', container: 'grid-centro' },
+      { key: 'nicaragua', name: 'Nicaragua', zone: 'Centroamérica y Caribe', container: 'grid-centro' },
+      { key: 'costa rica', name: 'Costa Rica', zone: 'Centroamérica y Caribe', container: 'grid-centro' },
+      { key: 'panama', name: 'Panamá', zone: 'Centroamérica y Caribe', container: 'grid-centro' },
+      { key: 'cuba', name: 'Cuba', zone: 'Centroamérica y Caribe', container: 'grid-centro' },
+
+      // Sudamérica
+      { key: 'colombia', name: 'Colombia', zone: 'Sudamérica', container: 'grid-sur' },
+      { key: 'venezuela', name: 'Venezuela', zone: 'Sudamérica', container: 'grid-sur' },
+      { key: 'ecuador', name: 'Ecuador', zone: 'Sudamérica', container: 'grid-sur' },
+      { key: 'peru', name: 'Perú', zone: 'Sudamérica', container: 'grid-sur' },
+      { key: 'bolivia', name: 'Bolivia', zone: 'Sudamérica', container: 'grid-sur' },
+      { key: 'brazil', name: 'Brasil', zone: 'Sudamérica', container: 'grid-sur' },
+      { key: 'chile', name: 'Chile', zone: 'Sudamérica', container: 'grid-sur' },
+      { key: 'argentina', name: 'Argentina', zone: 'Sudamérica', container: 'grid-sur' },
+      { key: 'paraguay', name: 'Paraguay', zone: 'Sudamérica', container: 'grid-sur' },
+      { key: 'uruguay', name: 'Uruguay', zone: 'Sudamérica', container: 'grid-sur' }
+    ];
+
+    PAISES_DATA.forEach((p, idx) => {
+      const container = document.getElementById(p.container);
+      const card = document.createElement('div');
+      card.className = 'country-card';
+      const qrId = `qr-code-item-${idx}`;
+
+      card.innerHTML = `
+        <div>
+          <div class="country-header">${p.name}</div>
+          <div class="country-zone">${p.zone}</div>
+        </div>
+        <div class="qr-holder" id="${qrId}"></div>
+        <div class="card-footer">Código: [${p.key.toUpperCase()}]</div>
+      `;
+
+      container.appendChild(card);
+
+      new QRCode(document.getElementById(qrId), {
+        text: p.key,
+        width: 100,
+        height: 100,
+        colorDark: '#000000',
+        colorLight: '#ffffff',
+        correctLevel: QRCode.CorrectLevel.M
+      });
+    });
+  </script>
+</body>
+</html>
+
