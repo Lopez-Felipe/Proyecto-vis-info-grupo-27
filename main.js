@@ -69,9 +69,6 @@ const ISO_BANDERAS = {
 };
 
 // Zonas Geográficas de las Américas clasificadas en las 3 macro-regiones
-// 1. Norteamérica (Anaranjados)
-// 2. Centroamérica y Caribe (Verdes)
-// 3. Sudamérica (Azules)
 const ZONAS_GEOGRAFICAS = {
   // 1. América del Norte (Gama Cálida / Anaranjados y Ámbar)
   'Canada': { zona: 'Norteamérica', color: '#ea580c', border: '#fdba74' },
@@ -112,6 +109,15 @@ const FUENTES_CONFIG = {
   'Gas': { label: 'Gas Natural', color: '#f97316', type: 'individual', category: 'fos' },
   'Other fossil': { label: 'Otros Fósiles', color: '#e11d48', type: 'individual', category: 'fos' }
 };
+
+// Función auxiliar para obtener la bandera en base64 de forma 100% segura
+function obtenerBanderaSrc(countryName) {
+  const iso = ISO_BANDERAS[countryName];
+  if (iso && typeof FLAGS_BASE64 !== 'undefined' && FLAGS_BASE64[iso]) {
+    return FLAGS_BASE64[iso];
+  }
+  return '';
+}
 
 // Top 5 de transición (2000 vs Último año disponible)
 const TOP5_MAYOR = [
@@ -238,6 +244,7 @@ const viewCountrySelected = document.getElementById('view-country-selected');
 const viewDualCompare = document.getElementById('view-dual-compare');
 const headerCountryBadge = document.getElementById('header-country-badge');
 const selectedCountryNameEl = document.getElementById('selected-country-name');
+const selectedCountryFlagEl = document.getElementById('selected-country-flag');
 const btnSelectOptions = document.getElementById('btn-select-options');
 const optionsPanel = document.getElementById('options-panel');
 const checkMacroUnified = document.getElementById('check-macro-unified');
@@ -467,15 +474,15 @@ async function renderMap() {
         const countryName = normalizarNombre(d.properties.name);
         const isEligible = PAISES_PRINCIPALES.includes(countryName);
         const label = NOMBRES_ESP[countryName] || countryName;
-        const iso = ISO_BANDERAS[countryName];
+        const flagSrc = obtenerBanderaSrc(countryName);
         const zonaInfo = ZONAS_GEOGRAFICAS[countryName];
-        const flagSrc = (typeof FLAGS_BASE64 !== 'undefined' && FLAGS_BASE64[iso]) ? FLAGS_BASE64[iso] : `flags/${iso}.png`;
 
         tooltip.style.display = 'block';
         if (isEligible) {
+          const flagImgHtml = flagSrc ? `<img src="${flagSrc}" class="tooltip-flag-img" alt="${label}" />` : `<span>📍</span>`;
           tooltip.innerHTML = `
             <div class="tooltip-content-with-flag">
-              <img src="${flagSrc}" class="tooltip-flag-img" alt="${label}" />
+              ${flagImgHtml}
               <div class="tooltip-text-group">
                 <span class="tooltip-country-name">${label}</span>
                 <span class="tooltip-zone-badge" style="color:${zonaInfo ? zonaInfo.border : '#38bdf8'}">📍 ${zonaInfo ? zonaInfo.zona : 'América'}</span>
@@ -528,6 +535,16 @@ function selectCountry(countryName, element) {
 
   const displayName = NOMBRES_ESP[countryName] || countryName;
   selectedCountryNameEl.textContent = displayName;
+
+  // Actualizar bandera en el header
+  const flagSrc = obtenerBanderaSrc(countryName);
+  if (selectedCountryFlagEl) {
+    if (flagSrc) {
+      selectedCountryFlagEl.innerHTML = `<img src="${flagSrc}" alt="${displayName}" style="width: 28px; height: 19px; border-radius: 3px; object-fit: cover; box-shadow: 0 1px 4px rgba(0,0,0,0.4);" />`;
+    } else {
+      selectedCountryFlagEl.innerHTML = `<span>📍</span>`;
+    }
+  }
 
   if (checkMacroUnified) checkMacroUnified.checked = true;
   document.querySelectorAll('.source-checkbox').forEach(cb => cb.checked = false);
@@ -1216,15 +1233,15 @@ function handleMobileMessage(msg) {
 // Actualizar visualmente la ranura del país 1 o país 2
 function actualizarSlotUI(slotNum, countryName, fallbackZone) {
   const espName = NOMBRES_ESP[countryName] || countryName;
-  const iso = ISO_BANDERAS[countryName];
-  const flagSrc = (typeof FLAGS_BASE64 !== 'undefined' && FLAGS_BASE64[iso]) ? FLAGS_BASE64[iso] : `flags/${iso}.png`;
+  const flagSrc = obtenerBanderaSrc(countryName);
   const zonaInfo = ZONAS_GEOGRAFICAS[countryName];
   const zoneLabel = zonaInfo ? zonaInfo.zona : (fallbackZone || 'América');
+  const flagImgHtml = flagSrc ? `<img src="${flagSrc}" alt="${espName}" style="width: 32px; height: 22px; border-radius: 4px; object-fit: cover; box-shadow: 0 2px 6px rgba(0,0,0,0.4);" />` : `<span>📍</span>`;
 
   if (slotNum === 1) {
     pcName1.textContent = espName;
     pcZone1.textContent = `📍 ${zoneLabel}`;
-    pcFlag1.innerHTML = `<img src="${flagSrc}" alt="${espName}" style="width: 32px; height: 22px; border-radius: 4px; object-fit: cover; box-shadow: 0 2px 6px rgba(0,0,0,0.4);" />`;
+    pcFlag1.innerHTML = flagImgHtml;
     pcSlot1.classList.add('slot-filled');
 
     // Resaltar en el globo terráqueo
@@ -1234,7 +1251,7 @@ function actualizarSlotUI(slotNum, countryName, fallbackZone) {
   } else {
     pcName2.textContent = espName;
     pcZone2.textContent = `📍 ${zoneLabel}`;
-    pcFlag2.innerHTML = `<img src="${flagSrc}" alt="${espName}" style="width: 32px; height: 22px; border-radius: 4px; object-fit: cover; box-shadow: 0 2px 6px rgba(0,0,0,0.4);" />`;
+    pcFlag2.innerHTML = flagImgHtml;
     pcSlot2.classList.add('slot-filled-2');
 
     d3.selectAll('.country').filter(function() {

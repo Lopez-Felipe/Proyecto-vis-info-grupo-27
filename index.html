@@ -52,10 +52,13 @@
           <h1>La Carrera de la Descarbonización</h1>
           <p class="subtitle">2000 – 2025 • Enfoque Temporal y Velocidad</p>
         </div>
-        <!-- País Seleccionado movido al header a la derecha (zona verde) para ahorrar espacio vertical -->
+        <!-- País Seleccionado movido al header a la derecha con bandera vectorial nítida -->
         <div id="header-country-badge" class="header-country-badge" style="display: none;">
           <span class="country-pill">País Seleccionado</span>
-          <h2 id="selected-country-name">Estados Unidos</h2>
+          <div class="header-country-title-row" style="display: flex; align-items: center; gap: 8px; margin-top: 2px;">
+            <span id="selected-country-flag" style="display: inline-flex; align-items: center;"></span>
+            <h2 id="selected-country-name" style="margin: 0;">Estados Unidos</h2>
+          </div>
         </div>
       </header>
 
@@ -68,7 +71,7 @@
               <span class="slot-flag" id="pc-flag-1">📍</span>
               <div class="slot-text">
                 <h3 id="pc-name-1">Esperando País 1...</h3>
-                <span class="slot-sub" id="pc-zone-1">Escanea un país en los mapas impresos</span>
+                <span class="slot-sub" id="pc-zone-1">Escanea un país en las tarjetas ArUco</span>
               </div>
             </div>
           </div>
@@ -81,7 +84,7 @@
               <span class="slot-flag" id="pc-flag-2">📍</span>
               <div class="slot-text">
                 <h3 id="pc-name-2">Esperando País 2...</h3>
-                <span class="slot-sub" id="pc-zone-2">Escanea un país en los mapas impresos</span>
+                <span class="slot-sub" id="pc-zone-2">Escanea un país en las tarjetas ArUco</span>
               </div>
             </div>
           </div>
@@ -126,7 +129,7 @@
           <div id="compare-placeholder" class="chart-placeholder">
             <div class="placeholder-icon">📱</div>
             <p><strong>Modo Físico / Tangible Conectado</strong></p>
-            <small>Usa tu celular para escanear los 2 países en las láminas de América.</small>
+            <small>Usa tu celular para escanear los 2 países en las tarjetas ArUco de América.</small>
           </div>
 
           <div id="compare-chart-container" class="chart-container" style="display: none;"></div>

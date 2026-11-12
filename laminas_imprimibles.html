@@ -2,180 +2,226 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Láminas de Marcadores para Impresión - Mapas de América</title>
+  <title>Láminas Marcadores ArUco - Descarbonización de las Américas</title>
   <style>
     @page {
       size: A4 portrait;
-      margin: 12mm;
+      margin: 10mm;
+    }
+    * {
+      box-sizing: border-box;
     }
     body {
-      font-family: Arial, sans-serif;
-      background: #f8fafc;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f1f5f9;
       color: #0f172a;
       margin: 0;
-      padding: 20px;
-    }
-    .print-sheet {
-      page-break-after: always;
-      background: #ffffff;
       padding: 16px;
-      border: 1px dashed #cbd5e1;
-      border-radius: 8px;
-      margin-bottom: 24px;
+    }
+    .sheet-section {
+      background: #ffffff;
+      padding: 14px;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 10px;
+      margin-bottom: 22px;
+      page-break-after: always;
     }
     .sheet-header {
-      border-bottom: 2px solid #0f172a;
-      padding-bottom: 8px;
-      margin-bottom: 16px;
       display: flex;
       justify-content: space-between;
       align-items: center;
+      border-bottom: 2px solid #0f172a;
+      padding-bottom: 6px;
+      margin-bottom: 14px;
     }
     .sheet-title {
-      font-size: 18px;
+      font-size: 16px;
       font-weight: 800;
       text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
-    .sheet-tag {
+    .sheet-badge {
       font-size: 11px;
       background: #e2e8f0;
-      padding: 4px 10px;
-      border-radius: 12px;
-      font-weight: bold;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-weight: 700;
     }
-    .grid-cards {
+    .cards-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 14px;
+      gap: 12px;
     }
-    .country-card {
-      border: 2px solid #334155;
+    /* Tarjeta ArUco Tangible */
+    .aruco-card {
+      border: 2px solid #1e293b;
       border-radius: 8px;
       padding: 10px;
-      text-align: center;
       background: #ffffff;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: space-between;
-      height: 170px;
+      height: 195px;
+      position: relative;
     }
-    .country-header {
-      font-size: 13px;
-      font-weight: 800;
+    .aruco-card-header {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
       margin-bottom: 4px;
     }
-    .country-zone {
+    .country-name {
+      font-size: 14px;
+      font-weight: 800;
+      color: #0f172a;
+    }
+    .aruco-id-pill {
+      font-size: 10px;
+      font-weight: 800;
+      background: #0f172a;
+      color: #ffffff;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+    .zone-subtitle {
       font-size: 10px;
       color: #64748b;
+      font-weight: 600;
+      align-self: flex-start;
+      margin-top: -2px;
       margin-bottom: 6px;
     }
-    .qr-holder {
-      width: 105px;
-      height: 105px;
+    /* Contenedor del Marcador ArUco con QR de alta legibilidad en el centro */
+    .aruco-marker-box {
+      width: 118px;
+      height: 118px;
+      background: #000000;
+      padding: 10px; /* Borde negro exterior de alto contraste estilo ArUco */
       display: flex;
       align-items: center;
       justify-content: center;
+      border-radius: 2px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.25);
+    }
+    .aruco-marker-inner {
+      background: #ffffff;
+      width: 98px;
+      height: 98px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3px;
     }
     .card-footer {
-      font-size: 9px;
-      color: #94a3b8;
+      font-size: 10px;
+      color: #334155;
       margin-top: 4px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
     }
+
     @media print {
       body { background: #fff; padding: 0; }
-      .no-print { display: none; }
-      .print-sheet { border: none; margin-bottom: 0; }
+      .no-print { display: none !important; }
+      .sheet-section { border: none; margin-bottom: 0; padding: 0; }
     }
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body>
 
-  <div class="no-print" style="margin-bottom: 20px; background: #0284c7; color: white; padding: 14px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
+  <div class="no-print" style="margin-bottom: 16px; background: #0f172a; color: white; padding: 14px 18px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
     <div>
-      <h2 style="margin: 0 0 4px 0;">Láminas de Marcadores para Impresión (19 Países)</h2>
-      <p style="margin: 0; font-size: 13px;">Imprime esta hoja o colócala junto a tus mapas impresos de las 3 zonas de América. La cámara del celular leerá el país seleccionado al instante.</p>
+      <h3 style="margin: 0 0 4px 0;">Tarjetas de Marcadores ArUco (19 Países de las Américas)</h3>
+      <p style="margin: 0; font-size: 13px; color: #94a3b8;">
+        Diseño inspirado en ArUco con grueso marco negro exterior y patrón digital de lectura instantánea para la cámara del celular.
+      </p>
     </div>
-    <button onclick="window.print()" style="background: #ffffff; color: #0284c7; border: none; padding: 10px 18px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px;">🖨️ Imprimir Láminas</button>
+    <button onclick="window.print()" style="background: #10b981; color: white; border: none; padding: 10px 18px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px;">🖨️ Imprimir Tarjetas ArUco</button>
   </div>
 
   <!-- LÁMINA 1: NORTEAMÉRICA -->
-  <div class="print-sheet">
+  <div class="sheet-section">
     <div class="sheet-header">
       <span class="sheet-title" style="color: #ea580c;">📍 ZONA 1: NORTEAMÉRICA (3 Países)</span>
-      <span class="sheet-tag">Lámina para recortar o pegar sobre mapa</span>
+      <span class="sheet-badge">Tarjetas ArUco Tangibles</span>
     </div>
-    <div class="grid-cards" id="grid-norte"></div>
+    <div class="cards-grid" id="grid-norte"></div>
   </div>
 
-  <!-- LÁMINA 2: CENTROAMÉRICA Y CARIBE -->
-  <div class="print-sheet">
+  <!-- LÁMINA 2: CENTROAMÉRICA Y EL CARIBE -->
+  <div class="sheet-section">
     <div class="sheet-header">
       <span class="sheet-title" style="color: #16a34a;">📍 ZONA 2: CENTROAMÉRICA & CARIBE (6 Países)</span>
-      <span class="sheet-tag">Lámina para recortar o pegar sobre mapa</span>
+      <span class="sheet-badge">Tarjetas ArUco Tangibles</span>
     </div>
-    <div class="grid-cards" id="grid-centro"></div>
+    <div class="cards-grid" id="grid-centro"></div>
   </div>
 
   <!-- LÁMINA 3: SUDAMÉRICA -->
-  <div class="print-sheet">
+  <div class="sheet-section">
     <div class="sheet-header">
       <span class="sheet-title" style="color: #0284c7;">📍 ZONA 3: SUDAMÉRICA (10 Países)</span>
-      <span class="sheet-tag">Lámina para recortar o pegar sobre mapa</span>
+      <span class="sheet-badge">Tarjetas ArUco Tangibles</span>
     </div>
-    <div class="grid-cards" id="grid-sur"></div>
+    <div class="cards-grid" id="grid-sur"></div>
   </div>
 
   <script>
-    const PAISES_DATA = [
+    const PAISES_ARUCO = [
       // Norteamérica
-      { key: 'canada', name: 'Canadá', zone: 'Norteamérica', container: 'grid-norte' },
-      { key: 'united states', name: 'Estados Unidos', zone: 'Norteamérica', container: 'grid-norte' },
-      { key: 'mexico', name: 'México', zone: 'Norteamérica', container: 'grid-norte' },
+      { id: 1, key: 'canada', name: 'Canadá', zone: 'Norteamérica', container: 'grid-norte' },
+      { id: 2, key: 'united states', name: 'Estados Unidos', zone: 'Norteamérica', container: 'grid-norte' },
+      { id: 3, key: 'mexico', name: 'México', zone: 'Norteamérica', container: 'grid-norte' },
 
-      // Centroamérica y Caribe
-      { key: 'guatemala', name: 'Guatemala', zone: 'Centroamérica y Caribe', container: 'grid-centro' },
-      { key: 'honduras', name: 'Honduras', zone: 'Centroamérica y Caribe', container: 'grid-centro' },
-      { key: 'nicaragua', name: 'Nicaragua', zone: 'Centroamérica y Caribe', container: 'grid-centro' },
-      { key: 'costa rica', name: 'Costa Rica', zone: 'Centroamérica y Caribe', container: 'grid-centro' },
-      { key: 'panama', name: 'Panamá', zone: 'Centroamérica y Caribe', container: 'grid-centro' },
-      { key: 'cuba', name: 'Cuba', zone: 'Centroamérica y Caribe', container: 'grid-centro' },
+      // Centroamérica & Caribe
+      { id: 4, key: 'guatemala', name: 'Guatemala', zone: 'Centroamérica y Caribe', container: 'grid-centro' },
+      { id: 5, key: 'honduras', name: 'Honduras', zone: 'Centroamérica y Caribe', container: 'grid-centro' },
+      { id: 6, key: 'nicaragua', name: 'Nicaragua', zone: 'Centroamérica y Caribe', container: 'grid-centro' },
+      { id: 7, key: 'costa rica', name: 'Costa Rica', zone: 'Centroamérica y Caribe', container: 'grid-centro' },
+      { id: 8, key: 'panama', name: 'Panamá', zone: 'Centroamérica y Caribe', container: 'grid-centro' },
+      { id: 9, key: 'cuba', name: 'Cuba', zone: 'Centroamérica y Caribe', container: 'grid-centro' },
 
       // Sudamérica
-      { key: 'colombia', name: 'Colombia', zone: 'Sudamérica', container: 'grid-sur' },
-      { key: 'venezuela', name: 'Venezuela', zone: 'Sudamérica', container: 'grid-sur' },
-      { key: 'ecuador', name: 'Ecuador', zone: 'Sudamérica', container: 'grid-sur' },
-      { key: 'peru', name: 'Perú', zone: 'Sudamérica', container: 'grid-sur' },
-      { key: 'bolivia', name: 'Bolivia', zone: 'Sudamérica', container: 'grid-sur' },
-      { key: 'brazil', name: 'Brasil', zone: 'Sudamérica', container: 'grid-sur' },
-      { key: 'chile', name: 'Chile', zone: 'Sudamérica', container: 'grid-sur' },
-      { key: 'argentina', name: 'Argentina', zone: 'Sudamérica', container: 'grid-sur' },
-      { key: 'paraguay', name: 'Paraguay', zone: 'Sudamérica', container: 'grid-sur' },
-      { key: 'uruguay', name: 'Uruguay', zone: 'Sudamérica', container: 'grid-sur' }
+      { id: 10, key: 'colombia', name: 'Colombia', zone: 'Sudamérica', container: 'grid-sur' },
+      { id: 11, key: 'venezuela', name: 'Venezuela', zone: 'Sudamérica', container: 'grid-sur' },
+      { id: 12, key: 'ecuador', name: 'Ecuador', zone: 'Sudamérica', container: 'grid-sur' },
+      { id: 13, key: 'peru', name: 'Perú', zone: 'Sudamérica', container: 'grid-sur' },
+      { id: 14, key: 'bolivia', name: 'Bolivia', zone: 'Sudamérica', container: 'grid-sur' },
+      { id: 15, key: 'brazil', name: 'Brasil', zone: 'Sudamérica', container: 'grid-sur' },
+      { id: 16, key: 'chile', name: 'Chile', zone: 'Sudamérica', container: 'grid-sur' },
+      { id: 17, key: 'argentina', name: 'Argentina', zone: 'Sudamérica', container: 'grid-sur' },
+      { id: 18, key: 'paraguay', name: 'Paraguay', zone: 'Sudamérica', container: 'grid-sur' },
+      { id: 19, key: 'uruguay', name: 'Uruguay', zone: 'Sudamérica', container: 'grid-sur' }
     ];
 
-    PAISES_DATA.forEach((p, idx) => {
+    PAISES_ARUCO.forEach((p, idx) => {
       const container = document.getElementById(p.container);
       const card = document.createElement('div');
-      card.className = 'country-card';
-      const qrId = `qr-code-item-${idx}`;
+      card.className = 'aruco-card';
+      const qrBoxId = `aruco-target-qr-${idx}`;
 
       card.innerHTML = `
-        <div>
-          <div class="country-header">${p.name}</div>
-          <div class="country-zone">${p.zone}</div>
+        <div class="aruco-card-header">
+          <span class="country-name">${p.name}</span>
+          <span class="aruco-id-pill">ArUco #${p.id}</span>
         </div>
-        <div class="qr-holder" id="${qrId}"></div>
-        <div class="card-footer">Código: [${p.key.toUpperCase()}]</div>
+        <span class="zone-subtitle">📍 ${p.zone}</span>
+        <div class="aruco-marker-box">
+          <div class="aruco-marker-inner" id="${qrBoxId}"></div>
+        </div>
+        <div class="card-footer">[ARUCO-${p.id}: ${p.name.toUpperCase()}]</div>
       `;
 
       container.appendChild(card);
 
-      new QRCode(document.getElementById(qrId), {
+      // Renderizar código digital compatible para detección inmediata por cámara
+      new QRCode(document.getElementById(qrBoxId), {
         text: p.key,
-        width: 100,
-        height: 100,
+        width: 92,
+        height: 92,
         colorDark: '#000000',
         colorLight: '#ffffff',
         correctLevel: QRCode.CorrectLevel.M
@@ -184,4 +230,3 @@
   </script>
 </body>
 </html>
-
